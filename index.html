@@ -347,6 +347,18 @@
     </div>
   </div>
 
+  <div class="overlay" id="jourDetailOverlay">
+    <div class="modal" style="max-width:520px;">
+      <div class="eyebrow mono" id="jourDetailEyebrow">JOUR</div>
+      <h2 id="jourDetailTitre" style="margin-bottom:14px;">Tâches du jour</h2>
+      <div id="jourDetailListe" class="tiles-grid" style="grid-template-columns:1fr; max-height:60vh; overflow-y:auto; margin-bottom:16px;"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="btnFermerJourDetail">Fermer</button>
+        <button class="btn-primary" id="btnNouveauJourDetail">+ Nouveau ticket ce jour</button>
+      </div>
+    </div>
+  </div>
+
   <div class="overlay" id="ghSyncOverlay">
     <div class="modal" style="max-width:460px;">
       <div class="eyebrow mono">SYNCHRONISATION</div>
@@ -635,6 +647,31 @@
     return card;
   }
 
+  var jourDetailDateActuelle = null;
+
+  function ouvrirJourDetail(dateStr) {
+    jourDetailDateActuelle = dateStr;
+    renderJourDetail();
+    document.getElementById("jourDetailOverlay").classList.add("open");
+  }
+
+  function renderJourDetail() {
+    if (!jourDetailDateActuelle) return;
+    var dateStr = jourDetailDateActuelle;
+    var taches = getFilteredList().filter(function (t) { return t.echeance === dateStr; });
+    document.getElementById("jourDetailEyebrow").textContent = formatFR(dateStr).toUpperCase();
+    document.getElementById("jourDetailTitre").textContent =
+      taches.length + (taches.length > 1 ? " tâches ce jour-là" : " tâche ce jour-là");
+    var container = document.getElementById("jourDetailListe");
+    container.innerHTML = "";
+    taches.forEach(function (t) { container.appendChild(buildCard(t)); });
+  }
+
+  function fermerJourDetail() {
+    document.getElementById("jourDetailOverlay").classList.remove("open");
+    jourDetailDateActuelle = null;
+  }
+
   function renderCalendrier(list, container) {
     var annee = calendrierMois.getFullYear();
     var mois = calendrierMois.getMonth();
@@ -713,7 +750,7 @@
           (t.echeanceHeure ? t.echeanceHeure + " " : "") + escapeHtml(t.titre) + "</div>";
       });
       if (tachesJour.length > 3) {
-        html += '<div class="calendar-more">+' + (tachesJour.length - 3) + " autre(s)</div>";
+        html += '<div class="calendar-more" data-action="cal-more" data-date="' + dateStr + '" style="cursor:pointer;text-decoration:underline;">+' + (tachesJour.length - 3) + " autre(s)</div>";
       }
       cell.innerHTML = html;
       grid.appendChild(cell);
@@ -817,6 +854,7 @@
     renderAlertBanner();
     save();
     planifierGhPush();
+    if (jourDetailDateActuelle) renderJourDetail();
   }
 
   // ---- Alertes d'échéance ----
@@ -1778,6 +1816,7 @@
     if (action === "cal-next") { calendrierMois.setMonth(calendrierMois.getMonth() + 1); renderList(); }
     if (action === "cal-today") { calendrierMois = new Date(); renderList(); }
     if (action === "cal-new-day") openModalNewAvecDate(btn.getAttribute("data-date"));
+    if (action === "cal-more") ouvrirJourDetail(btn.getAttribute("data-date"));
     if (action === "cycle-priorite") cyclerPriorite(id);
   });
   document.getElementById("liste").addEventListener("change", function (e) {
@@ -1786,9 +1825,34 @@
     changeStatut(el.getAttribute("data-id"), el.value);
   });
 
+  document.getElementById("jourDetailListe").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    var action = btn.getAttribute("data-action");
+    var id = btn.getAttribute("data-id");
+    if (action === "edit") openModalEdit(id);
+    if (action === "delete") deleteTache(id);
+    if (action === "outlook") exporterUneTacheOutlook(id);
+    if (action === "cycle-priorite") cyclerPriorite(id);
+  });
+  document.getElementById("jourDetailListe").addEventListener("change", function (e) {
+    var el = e.target.closest('[data-action="status"]');
+    if (!el) return;
+    changeStatut(el.getAttribute("data-id"), el.value);
+  });
+  document.getElementById("btnFermerJourDetail").addEventListener("click", fermerJourDetail);
+  document.getElementById("btnNouveauJourDetail").addEventListener("click", function () {
+    var dateStr = jourDetailDateActuelle;
+    fermerJourDetail();
+    openModalNewAvecDate(dateStr);
+  });
+  document.getElementById("jourDetailOverlay").addEventListener("click", function (e) {
+    if (e.target.id === "jourDetailOverlay") fermerJourDetail();
+  });
+
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
-      closeModal(); fermerRapport(); fermerImportSn();
+      closeModal(); fermerRapport(); fermerImportSn(); fermerJourDetail(); fermerGhSync();
       document.getElementById("outilsMenu").classList.remove("open");
     }
   });
