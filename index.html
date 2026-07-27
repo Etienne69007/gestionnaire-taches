@@ -181,6 +181,9 @@
             <button class="dropdown-item" id="btnOutlookAll">📅 Échéances → Outlook</button>
             <button class="dropdown-item" id="btnSnImport">🔄 Importer ServiceNow</button>
             <div class="dropdown-sep"></div>
+            <button class="dropdown-item" id="btnGhSync">🔗 Synchro GitHub</button>
+            <button class="dropdown-item" id="btnGhSyncNow">🔄 Synchroniser maintenant</button>
+            <div class="dropdown-sep"></div>
             <button class="dropdown-item" id="btnExporter">⬇️ Exporter les tâches (JSON)</button>
             <button class="dropdown-item" id="btnImporter">⬆️ Importer les tâches (JSON)</button>
             <input type="file" id="fileImporter" accept="application/json" style="display:none;" />
@@ -190,6 +193,7 @@
       </div>
     </header>
     <div id="importInfo" class="mono" style="font-size:11px; color:#94A3AB; margin:-10px 0 18px; text-align:right;"></div>
+    <div id="ghSyncInfo" class="mono" style="font-size:11px; color:#94A3AB; margin:-10px 0 18px; text-align:right;"></div>
     <div id="alertBanner" style="display:none;"></div>
 
     <div class="stat-row" id="statRow"></div>
@@ -338,6 +342,55 @@
       <div class="modal-actions">
         <button class="btn-ghost" id="btnFermerSn">Annuler</button>
         <button class="btn-primary" id="btnLancerImportSn">Importer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ghSyncOverlay">
+    <div class="modal" style="max-width:460px;">
+      <div class="eyebrow mono">SYNCHRONISATION</div>
+      <h2>Synchro GitHub</h2>
+      <div style="font-size:12.5px; color:#66757D; margin-bottom:14px;">
+        Stocke tes tâches dans un fichier de ton dépôt GitHub pour les retrouver sur n'importe quel navigateur ou appareil.
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label class="label">Propriétaire (owner)</label>
+          <input class="field" id="ghOwner" placeholder="ex. etienne69007" />
+        </div>
+        <div>
+          <label class="label">Dépôt</label>
+          <input class="field" id="ghRepo" placeholder="ex. gestionnaire-taches" />
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label class="label">Chemin du fichier</label>
+          <input class="field" id="ghPath" placeholder="taches.json" />
+        </div>
+        <div>
+          <label class="label">Branche</label>
+          <input class="field" id="ghBranch" placeholder="main" />
+        </div>
+      </div>
+
+      <label class="label">Jeton d'accès personnel (GitHub PAT)</label>
+      <input class="field" type="password" id="ghToken" placeholder="ghp_... (droits Contents: Read and write)" />
+
+      <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:#66757D; margin:-4px 0 6px;">
+        <input type="checkbox" id="ghRemember" /> Mémoriser la configuration et le jeton sur cet appareil
+      </label>
+      <div style="font-size:11.5px; color:#94A3AB; margin-bottom:12px;">
+        Déconseillé sur un poste partagé. Utilise un jeton "fine-grained" limité à ce seul dépôt (Contents: Read and write).
+      </div>
+
+      <div id="ghErreur" class="error" style="display:none;"></div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" id="btnFermerGh">Annuler</button>
+        <button class="btn-primary" id="btnLancerGhSync">Connecter et synchroniser</button>
       </div>
     </div>
   </div>
@@ -762,6 +815,7 @@
     renderList();
     renderAlertBanner();
     save();
+    planifierGhPush();
   }
 
   // ---- Alertes d'échéance ----
@@ -1007,6 +1061,198 @@
         "autorise l'origine " + window.location.origin + " dans ServiceNow (table sys_cors). Détail : " + e.message
       );
     });
+  }
+
+  // ---- Synchronisation GitHub ----
+  var GH_CONFIG_KEY = "gh_sync_config_v1";
+  var ghToken = "";
+  var ghSha = null;
+  var ghConnecte = false;
+  var ghPushTimer = null;
+
+  function chargerConfigGh() {
+    try {
+      var raw = localStorage.getItem(GH_CONFIG_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function ghSetInfo(texte) {
+    document.getElementById("ghSyncInfo").textContent = texte;
+  }
+
+  function ouvrirGhSync() {
+    var cfg = chargerConfigGh();
+    document.getElementById("ghOwner").value = cfg.owner || "";
+    document.getElementById("ghRepo").value = cfg.repo || "";
+    document.getElementById("ghPath").value = cfg.path || "taches.json";
+    document.getElementById("ghBranch").value = cfg.branch || "main";
+    document.getElementById("ghToken").value = cfg.remember ? (cfg.token || "") : "";
+    document.getElementById("ghRemember").checked = !!cfg.remember;
+    document.getElementById("ghErreur").style.display = "none";
+    document.getElementById("ghSyncOverlay").classList.add("open");
+  }
+
+  function fermerGhSync() {
+    document.getElementById("ghSyncOverlay").classList.remove("open");
+  }
+
+  function ghShowErreur(msg) {
+    var el = document.getElementById("ghErreur");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function ghConfigActuelle() {
+    var cfg = chargerConfigGh();
+    return { owner: cfg.owner, repo: cfg.repo, path: cfg.path || "taches.json", branch: cfg.branch || "main" };
+  }
+
+  function ghApiUrl(cfg) {
+    return "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" +
+      encodeURIComponent(cfg.path) + "?ref=" + encodeURIComponent(cfg.branch);
+  }
+
+  function ghHeaders() {
+    return {
+      "Authorization": "Bearer " + ghToken,
+      "Accept": "application/vnd.github+json"
+    };
+  }
+
+  function ghPull(cfg) {
+    return fetch(ghApiUrl(cfg), { headers: ghHeaders() }).then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (data) {
+      if (!data) { ghSha = null; return null; }
+      ghSha = data.sha;
+      var decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ""))));
+      return JSON.parse(decoded);
+    });
+  }
+
+  function ghPush() {
+    if (!ghConnecte || !ghToken) return;
+    var cfg = ghConfigActuelle();
+    if (!cfg.owner || !cfg.repo) return;
+    var payload = JSON.stringify({ taches: state.taches, nextNum: state.nextNum });
+    var encoded = btoa(unescape(encodeURIComponent(payload)));
+    var body = {
+      message: "Mise à jour des tâches — " + new Date().toISOString(),
+      content: encoded,
+      branch: cfg.branch
+    };
+    if (ghSha) body.sha = ghSha;
+
+    fetch("https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + encodeURIComponent(cfg.path), {
+      method: "PUT",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (r.status === 409 || r.status === 422) {
+        return ghPull(cfg).then(function () { return ghPush(); });
+      }
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (data) {
+      if (data && data.content && data.content.sha) ghSha = data.content.sha;
+      ghSetInfo("Synchronisé avec GitHub à " + new Date().toLocaleTimeString("fr-FR"));
+    }).catch(function (e) {
+      ghSetInfo("Échec de synchronisation GitHub (" + e.message + ")");
+    });
+  }
+
+  function planifierGhPush() {
+    if (!ghConnecte) return;
+    if (ghPushTimer) clearTimeout(ghPushTimer);
+    ghPushTimer = setTimeout(ghPush, 2000);
+  }
+
+  function lancerGhSync() {
+    var owner = document.getElementById("ghOwner").value.trim();
+    var repo = document.getElementById("ghRepo").value.trim();
+    var path = document.getElementById("ghPath").value.trim() || "taches.json";
+    var branch = document.getElementById("ghBranch").value.trim() || "main";
+    var token = document.getElementById("ghToken").value.trim();
+    var remember = document.getElementById("ghRemember").checked;
+
+    if (!owner || !repo || !token) {
+      ghShowErreur("Renseigne le propriétaire, le dépôt et le jeton d'accès.");
+      return;
+    }
+
+    ghToken = token;
+    var cfg = { owner: owner, repo: repo, path: path, branch: branch, remember: remember };
+    if (remember) {
+      cfg.token = token;
+      localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(cfg));
+    } else {
+      localStorage.setItem(GH_CONFIG_KEY, JSON.stringify({ owner: owner, repo: repo, path: path, branch: branch, remember: false }));
+    }
+
+    var btn = document.getElementById("btnLancerGhSync");
+    btn.disabled = true;
+    btn.textContent = "Connexion…";
+
+    ghPull({ owner: owner, repo: repo, path: path, branch: branch }).then(function (distant) {
+      btn.disabled = false;
+      btn.textContent = "Connecter et synchroniser";
+      ghConnecte = true;
+
+      if (distant && Array.isArray(distant.taches)) {
+        var remplacer = confirm(
+          distant.taches.length + " tâche(s) trouvée(s) sur GitHub.\n\n" +
+          "Clique OK pour charger la version GitHub (remplace les tâches locales), " +
+          "ou Annuler pour garder tes tâches locales et les envoyer vers GitHub."
+        );
+        if (remplacer) {
+          state.taches = distant.taches;
+          state.nextNum = distant.nextNum || 1;
+          renderAll();
+        } else {
+          ghPush();
+        }
+      } else {
+        // Aucun fichier distant : on envoie l'état local
+        ghPush();
+      }
+
+      fermerGhSync();
+      ghSetInfo("Synchro GitHub activée (" + owner + "/" + repo + ")");
+    }).catch(function (e) {
+      btn.disabled = false;
+      btn.textContent = "Connecter et synchroniser";
+      ghShowErreur("Échec de connexion. Vérifie le propriétaire, le dépôt et le jeton (droits Contents: Read and write). Détail : " + e.message);
+    });
+  }
+
+  function synchroniserMaintenant() {
+    if (!ghConnecte) {
+      ouvrirGhSync();
+      return;
+    }
+    ghSetInfo("Synchronisation en cours…");
+    ghPush();
+  }
+
+  function initGhSync() {
+    var cfg = chargerConfigGh();
+    if (cfg.remember && cfg.owner && cfg.repo && cfg.token) {
+      ghToken = cfg.token;
+      ghConnecte = true;
+      ghPull(cfg).then(function (distant) {
+        if (distant && Array.isArray(distant.taches)) {
+          state.taches = distant.taches;
+          state.nextNum = distant.nextNum || 1;
+          renderAll();
+        }
+        ghSetInfo("Synchro GitHub active (" + cfg.owner + "/" + cfg.repo + ")");
+      }).catch(function (e) {
+        ghSetInfo("Échec de synchronisation GitHub au chargement (" + e.message + ")");
+      });
+    }
   }
 
   function ouvrirRapport() {
@@ -1647,6 +1893,14 @@
     if (e.target.id === "snOverlay") fermerImportSn();
   });
 
+  document.getElementById("btnGhSync").addEventListener("click", ouvrirGhSync);
+  document.getElementById("btnGhSyncNow").addEventListener("click", synchroniserMaintenant);
+  document.getElementById("btnFermerGh").addEventListener("click", fermerGhSync);
+  document.getElementById("btnLancerGhSync").addEventListener("click", lancerGhSync);
+  document.getElementById("ghSyncOverlay").addEventListener("click", function (e) {
+    if (e.target.id === "ghSyncOverlay") fermerGhSync();
+  });
+
   // ---- Init ----
   load();
   chargerPrefs();
@@ -1659,6 +1913,7 @@
     b.classList.toggle("active", b.getAttribute("data-view") === currentView);
   });
   renderAll();
+  initGhSync();
 
   if ("Notification" in window && Notification.permission === "granted") {
     var btnNotifsInit = document.getElementById("btnNotifs");
