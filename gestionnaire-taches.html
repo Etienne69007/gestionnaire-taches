@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mes tâches</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwRThDN0EiLz4KICA8cmVjdCB4PSIxNiIgeT0iMTQiIHdpZHRoPSIzMiIgaGVpZ2h0PSI2IiByeD0iMyIgZmlsbD0iI0ZGRkZGRiIvPgogIDxyZWN0IHg9IjE2IiB5PSIyOSIgd2lkdGg9IjMyIiBoZWlnaHQ9IjYiIHJ4PSIzIiBmaWxsPSIjRkZGRkZGIiBvcGFjaXR5PSIwLjg1Ii8+CiAgPHJlY3QgeD0iMTYiIHk9IjQ0IiB3aWR0aD0iMjAiIGhlaWdodD0iNiIgcng9IjMiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuNyIvPgogIDxjaXJjbGUgY3g9IjQ4IiBjeT0iNDciIHI9IjEwIiBmaWxsPSIjMUIyMzJDIi8+CiAgPHBhdGggZD0iTTQzLjUgNDcuMmwzIDMgNS02IiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMi40IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #F3F5F6;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #1B232C;
+    min-height: 100vh;
+    padding: 28px 20px 60px;
+  }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  input, textarea, select, button { font-family: inherit; }
+  input:focus, textarea:focus, select:focus, button:focus-visible {
+    outline: 2px solid #0E8C7A;
+    outline-offset: 1px;
+  }
+  ::placeholder { color: #9BA8AF; }
+
+  .wrap { max-width: 900px; margin: 0 auto; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .eyebrow { font-size: 11px; letter-spacing: 2px; color: #0E8C7A; }
+  h1 { font-size: 22px; font-weight: 700; margin: 4px 0 0; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+  .stat-card { background: #FFFFFF; border: 1px solid #DCE2E6; border-radius: 6px; padding: 12px 14px;
+    box-shadow: 0 1px 2px rgba(27,35,44,0.04); }
+  .stat-value { font-size: 24px; font-weight: 700; }
+  .stat-label { font-size: 11.5px; color: #66757D; margin-top: 2px; }
+
+  .view-toggle { display: flex; border: 1px solid #D8DEE3; border-radius: 6px; overflow: hidden; margin-left: auto; }
+  .view-btn { background: #FFFFFF; border: none; color: #66757D; font-size: 12.5px; padding: 8px 12px; cursor: pointer; }
+  .view-btn + .view-btn { border-left: 1px solid #D8DEE3; }
+  .view-btn.active { background: #0E8C7A; color: #FFFFFF; }
+  .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .calendar-nav { display: flex; align-items: center; gap: 8px; }
+  .calendar-nav-btn { background: #FFFFFF; border: 1px solid #D8DEE3; border-radius: 6px; color: #66757D;
+    font-size: 13px; padding: 6px 10px; cursor: pointer; }
+  .calendar-title { font-size: 15px; font-weight: 700; color: #1B232C; text-transform: capitalize; min-width: 160px; text-align: center; }
+  .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+  .calendar-weekday { font-size: 11px; color: #94A3AB; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .calendar-day { min-height: 92px; border: 1px solid #DCE2E6; border-radius: 6px; padding: 6px;
+    background: #FFFFFF; cursor: pointer; display: flex; flex-direction: column; gap: 3px; }
+  .calendar-day:hover { border-color: #0E8C7A; }
+  .calendar-day.hors-mois { background: #F8F9FA; opacity: 0.55; }
+  .calendar-day.aujourdhui { border: 2px solid #0E8C7A; }
+  .calendar-daynum { font-size: 11px; color: #66757D; font-weight: 700; }
+  .calendar-chip { font-size: 10.5px; padding: 2px 5px; border-radius: 4px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; border-left: 2px solid; background: #F3F5F6; }
+  .calendar-more { font-size: 10px; color: #94A3AB; }
+  .no-echeance-header { font-size: 12.5px; font-weight: 700; color: #1B232C; margin: 20px 0 8px; }
+  @media (max-width: 720px) {
+    .calendar-day { min-height: 64px; padding: 4px; }
+    .calendar-chip { font-size: 9.5px; }
+    .calendar-title { min-width: 110px; font-size: 13px; }
+    .tiles-grid { grid-template-columns: 1fr; }
+  }
+  .group-header { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 10px 4px 4px; font-size: 12.5px; font-weight: 700; color: #1B232C; }
+  .group-header:first-child { padding-top: 0; }
+  .group-count { color: #94A3AB; font-size: 11px; }
+  .notes-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; max-height: 160px; overflow-y: auto; }
+  .note-item { background: #F3F5F6; border: 1px solid #D8DEE3; border-radius: 5px; padding: 6px 9px; font-size: 12.5px; }
+  .note-date { font-size: 10.5px; color: #94A3AB; margin-bottom: 2px; }
+  .notes-empty { font-size: 12.5px; color: #94A3AB; margin-bottom: 10px; }
+  .alert-banner { border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px;
+    display: flex; flex-direction: column; gap: 4px; }
+  .alert-banner.retard { background: #D14F3B1A; border: 1px solid #D14F3B55; color: #A83A29; }
+  .alert-banner.aujourdhui { background: #B8790F1A; border: 1px solid #B8790F55; color: #8C5E0B; }
+  .alert-banner-titre { font-weight: 700; }
+  .alert-banner-titre[data-action="filtrer"] { text-decoration: underline; text-underline-offset: 3px; }
+  .alert-banner-titre[data-action="filtrer"]:hover { opacity: 0.75; }
+  .alert-banner-item { font-size: 12.5px; padding-left: 22px; }
+  .rapport-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 4px; }
+  .rapport-table th { text-align: left; font-size: 11px; color: #66757D; padding: 6px 8px;
+    border-bottom: 1px solid #D8DEE3; }
+  .rapport-table td { padding: 7px 8px; border-bottom: 1px solid #EEF1F3; }
+  .rapport-table tr:last-child td { font-weight: 700; border-top: 2px solid #D8DEE3; border-bottom: none; }
+  .sn-badge { font-size: 10.5px; color: #94A3AB; }
+
+  .field { background: #FFFFFF; border: 1px solid #D8DEE3; border-radius: 6px; color: #1B232C;
+    padding: 9px 11px; font-size: 13.5px; width: 100%; margin-bottom: 12px; }
+  select.field { cursor: pointer; }
+
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .tiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .tiles-grid .card { display: flex; flex-direction: column; }
+  .card { background: #FFFFFF; border: 1px solid #DCE2E6; border-radius: 6px; padding: 12px 14px;
+    box-shadow: 0 1px 2px rgba(27,35,44,0.04); }
+  .card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .card-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .ticket-id { font-size: 12px; color: #9BA8AF; flex-shrink: 0; }
+  .title { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .title.done { color: #9BA8AF; text-decoration: line-through; }
+  .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .icon-btn { background: transparent; border: 1px solid #D8DEE3; border-radius: 4px; color: #66757D;
+    font-size: 11.5px; padding: 4px 8px; cursor: pointer; }
+  .icon-btn.danger { color: #D14F3B; }
+  .icon-btn.icon-only { padding: 4px 7px; font-size: 12px; line-height: 1; }
+  .desc { font-size: 13px; color: #66757D; margin: 6px 0 10px; line-height: 1.5; }
+  .card-bottom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tag { font-size: 11.5px; padding: 3px 8px; border-radius: 4px; white-space: nowrap; border: 1px solid; }
+  .due { font-size: 11.5px; margin-left: auto; }
+  .status-select { background: #EEF1F3; border: 1px solid #D8DEE3; border-radius: 4px; color: #1B232C;
+    font-size: 11.5px; padding: 4px 6px; cursor: pointer; }
+
+  .empty { background: #FFFFFF; border: 1px dashed #D8DEE3; border-radius: 6px; padding: 36px 20px; text-align: center; }
+  .empty-eyebrow { font-size: 12px; color: #9BA8AF; margin-bottom: 6px; }
+  .empty-text { color: #66757D; font-size: 14px; }
+
+  .btn-primary { background: #2563A6; color: #FFFFFF; border: none; border-radius: 6px;
+    padding: 9px 16px; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+  .btn-ghost { background: transparent; border: 1px solid #D8DEE3; color: #66757D; border-radius: 6px;
+    padding: 9px 16px; font-size: 13.5px; cursor: pointer; }
+  .icon-round-btn { background: #FFFFFF; border: 1px solid #D8DEE3; color: #66757D; border-radius: 6px;
+    width: 38px; height: 38px; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .icon-round-btn.actif { background: #0E8C7A1A; border-color: #0E8C7A; color: #0E8C7A; }
+
+  .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .dropdown { position: relative; }
+  .dropdown-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #FFFFFF;
+    border: 1px solid #D8DEE3; border-radius: 8px; box-shadow: 0 8px 24px rgba(27,35,44,0.14);
+    min-width: 230px; padding: 6px; display: none; z-index: 20; }
+  .dropdown-menu.open { display: block; }
+  .dropdown-item { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+    background: none; border: none; padding: 9px 10px; font-size: 13px; color: #1B232C;
+    border-radius: 5px; cursor: pointer; }
+  .dropdown-item:hover { background: #F3F5F6; }
+  .dropdown-sep { height: 1px; background: #EEF1F3; margin: 5px 2px; }
+
+  .toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  .toolbar-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .toolbar-row .field { margin-bottom: 0; }
+  .toolbar-filters { gap: 8px; }
+  .toolbar-filters select.field { width: auto; min-width: 130px; }
+  .filtre-chip { display: inline-flex; align-items: center; gap: 6px; background: #0E8C7A1A;
+    border: 1px solid #0E8C7A55; color: #0E8C7A; font-size: 12px; padding: 6px 10px; border-radius: 6px; }
+  .filtre-chip button { background: none; border: none; color: #0E8C7A; cursor: pointer; font-size: 13px; line-height: 1; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(27,35,44,0.35); display: none;
+    align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .overlay.open { display: flex; }
+  .modal { background: #FFFFFF; border: 1px solid #DCE2E6; border-radius: 8px; padding: 22px;
+    width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(27,35,44,0.12); }
+  .modal h2 { font-size: 18px; margin: 0 0 16px; }
+  .label { display: block; font-size: 11.5px; color: #66757D; margin-bottom: 5px; }
+  .row-2 { display: flex; gap: 12px; }
+  .row-2 > div { flex: 1; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+  .error { color: #D14F3B; font-size: 13px; margin-top: 4px; }
+
+  @media (max-width: 720px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+  <!-- ===== Navigation (menu burger) ===== -->
+  <style>
+    .ghnav-btn { position: fixed; top: 18px; left: 18px; z-index: 200; width: 42px; height: 42px;
+      border-radius: 8px; background: #1B232C; border: none; color: #FFFFFF; font-size: 18px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(27,35,44,0.25); }
+    .ghnav-btn:hover { background: #2b3742; }
+    .ghnav-overlay { position: fixed; inset: 0; background: rgba(27,35,44,0.35); z-index: 199;
+      display: none; }
+    .ghnav-overlay.open { display: block; }
+    .ghnav-drawer { position: fixed; top: 0; left: 0; height: 100%; width: 260px;
+      background: #FFFFFF; z-index: 201; box-shadow: 2px 0 20px rgba(27,35,44,0.18);
+      transform: translateX(-100%); transition: transform 0.2s ease; display: flex; flex-direction: column; }
+    .ghnav-drawer.open { transform: translateX(0); }
+    .ghnav-head { padding: 18px 16px 14px; border-bottom: 1px solid #EEF1F3; display: flex;
+      align-items: center; justify-content: space-between; }
+    .ghnav-title { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: #66757D;
+      text-transform: uppercase; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .ghnav-close { background: none; border: none; font-size: 18px; color: #94A3AB; cursor: pointer;
+      padding: 2px 6px; }
+    .ghnav-list { padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .ghnav-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 6px;
+      color: #1B232C; text-decoration: none; font-size: 13.5px; font-weight: 600; }
+    .ghnav-link:hover { background: #F3F5F6; }
+    .ghnav-link.active { background: #0E8C7A1A; color: #0E8C7A; }
+    .ghnav-link .ghnav-icon { font-size: 15px; width: 20px; text-align: center; }
+  </style>
+  <button class="ghnav-btn" id="ghnavBtn" title="Menu de navigation">☰</button>
+  <div class="ghnav-overlay" id="ghnavOverlay"></div>
+  <nav class="ghnav-drawer" id="ghnavDrawer">
+    <div class="ghnav-head">
+      <div class="ghnav-title">Navigation</div>
+      <button class="ghnav-close" id="ghnavClose">✕</button>
+    </div>
+    <div class="ghnav-list">
+      <a class="ghnav-link" href="index.html"><span class="ghnav-icon">🏠</span> Accueil</a>
+      <a class="ghnav-link active" href="gestionnaire-taches.html"><span class="ghnav-icon">✅</span> Mes tâches</a>
+      <a class="ghnav-link" href="planning_equipe.html"><span class="ghnav-icon">📅</span> Planning équipe</a>
+    </div>
+  </nav>
+  <script>
+    (function () {
+      const btn = document.getElementById('ghnavBtn');
+      const drawer = document.getElementById('ghnavDrawer');
+      const overlay = document.getElementById('ghnavOverlay');
+      const close = document.getElementById('ghnavClose');
+      function openNav() { drawer.classList.add('open'); overlay.classList.add('open'); }
+      function closeNav() { drawer.classList.remove('open'); overlay.classList.remove('open'); }
+      btn.addEventListener('click', openNav);
+      close.addEventListener('click', closeNav);
+      overlay.addEventListener('click', closeNav);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
+    })();
+  </script>
+  <!-- ===== Fin navigation ===== -->
+  <div class="wrap">
+    <header>
+      <div>
+        <div class="eyebrow mono">PANNEAU DE CONTRÔLE</div>
+        <h1>Mes tâches</h1>
+      </div>
+      <div class="header-actions">
+        <button class="icon-round-btn" id="btnNotifs" title="Activer les alertes de navigateur">🔔</button>
+        <div class="dropdown" id="outilsDropdown">
+          <button class="btn-ghost" id="btnOutilsToggle">Outils ▾</button>
+          <div class="dropdown-menu" id="outilsMenu">
+            <button class="dropdown-item" id="btnRapport">📊 Rapport hebdo</button>
+            <button class="dropdown-item" id="btnOutlookAll">📅 Échéances → Outlook</button>
+            <button class="dropdown-item" id="btnSnImport">🔄 Importer ServiceNow</button>
+            <div class="dropdown-sep"></div>
+            <button class="dropdown-item" id="btnGhSync">🔗 Synchro GitHub</button>
+            <button class="dropdown-item" id="btnGhSyncNow">🔄 Synchroniser maintenant</button>
+            <div class="dropdown-sep"></div>
+            <button class="dropdown-item" id="btnExporter">⬇️ Exporter les tâches (JSON)</button>
+            <button class="dropdown-item" id="btnImporter">⬆️ Importer les tâches (JSON)</button>
+            <input type="file" id="fileImporter" accept="application/json" style="display:none;" />
+          </div>
+        </div>
+        <button class="btn-primary" id="btnNouveau">+ Nouveau ticket</button>
+      </div>
+    </header>
+    <div id="importInfo" class="mono" style="font-size:11px; color:#94A3AB; margin:-10px 0 18px; text-align:right;"></div>
+    <div id="ghSyncInfo" class="mono" style="font-size:11px; color:#94A3AB; margin:-10px 0 18px; text-align:right;"></div>
+    <div id="alertBanner" style="display:none;"></div>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="toolbar">
+      <div class="toolbar-row">
+        <input class="field" id="recherche" placeholder="Rechercher un ticket, une description, une personne…" style="flex: 1 1 280px;" />
+        <div class="view-toggle">
+          <button class="view-btn active" id="vueListe" data-view="liste">Liste</button>
+          <button class="view-btn" id="vueTechnicien" data-view="technicien">Par technicien</button>
+          <button class="view-btn" id="vueCalendrier" data-view="calendrier">Calendrier</button>
+        </div>
+      </div>
+      <div class="toolbar-row toolbar-filters">
+        <select class="field" id="filtreType"></select>
+        <select class="field" id="filtreStatut"></select>
+        <select class="field" id="filtrePriorite"></select>
+        <select class="field" id="filtreTri"></select>
+        <span id="filtreEcheanceChip" class="filtre-chip" style="display:none;"></span>
+        <span id="compteurAffichage" class="mono" style="font-size:11px; color:#94A3AB; margin-left:auto;"></span>
+      </div>
+    </div>
+
+    <main class="list" id="liste"></main>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="eyebrow mono" id="modalEyebrow">NOUVEAU TICKET</div>
+      <h2 id="modalTitle">Créer une tâche</h2>
+
+      <label class="label">Titre</label>
+      <input class="field" id="fTitre" placeholder="Ex. Relancer le fournisseur télécom" />
+
+      <label class="label">Description</label>
+      <textarea class="field" id="fDescription" style="min-height:70px; resize:vertical;" placeholder="Détails, contexte…"></textarea>
+
+      <div class="row-2">
+        <div>
+          <label class="label">Type</label>
+          <select class="field" id="fType"></select>
+        </div>
+        <div>
+          <label class="label">Priorité</label>
+          <select class="field" id="fPriorite"></select>
+        </div>
+      </div>
+
+      <div id="assigneWrap" style="display:none;">
+        <label class="label">Assigné à</label>
+        <input class="field" id="fAssigne" placeholder="Nom du technicien" />
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label class="label">Échéance</label>
+          <input class="field" type="date" id="fEcheance" />
+        </div>
+        <div>
+          <label class="label">Heure</label>
+          <input class="field" type="time" id="fEcheanceHeure" />
+        </div>
+        <div>
+          <label class="label">Statut</label>
+          <select class="field" id="fStatut"></select>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label class="label">N° ticket ServiceNow</label>
+          <input class="field" id="fSnTicket" placeholder="Ex. INC0012345" />
+        </div>
+        <div>
+          <label class="label">Récurrence</label>
+          <select class="field" id="fRecurrence"></select>
+        </div>
+      </div>
+
+      <div class="error" id="fErreur" style="display:none;"></div>
+
+      <div id="notesSection" style="display:none;">
+        <label class="label" style="margin-top:14px;">Notes de suivi</label>
+        <div id="notesList" class="notes-list"></div>
+        <div style="display:flex; gap:8px;">
+          <input class="field" id="fNouvelleNote" placeholder="Ajouter une note…" style="margin-bottom:0;" />
+          <button class="btn-ghost" id="btnAjouterNote" type="button">Ajouter</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" id="btnAnnuler">Annuler</button>
+        <button class="btn-primary" id="btnEnregistrer">Créer le ticket</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="rapportOverlay">
+    <div class="modal" style="max-width:640px;">
+      <div class="eyebrow mono">RAPPORT HEBDOMADAIRE</div>
+      <h2 style="margin-bottom:2px;">Suivi par technicien</h2>
+      <div style="font-size:12.5px; color:#66757D; margin-bottom:14px;">Terminées : 7 derniers jours</div>
+      <div id="rapportContenu"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="btnFermerRapport">Fermer</button>
+        <button class="btn-ghost" id="btnCopierRapport">Copier le texte</button>
+        <button class="btn-primary" id="btnTelechargerRapport">Télécharger .txt</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="snOverlay">
+    <div class="modal" style="max-width:460px;">
+      <div class="eyebrow mono">SERVICENOW</div>
+      <h2>Importer les tickets</h2>
+      <div style="font-size:12.5px; color:#66757D; margin-bottom:14px;">
+        Récupère les tickets actifs assignés à un technicien et les tickets non affectés.
+      </div>
+
+      <label class="label">URL de l'instance</label>
+      <input class="field" id="snUrl" placeholder="https://votreentreprise.service-now.com" />
+
+      <div class="row-2">
+        <div>
+          <label class="label">Table</label>
+          <input class="field" id="snTable" placeholder="incident" />
+        </div>
+        <div>
+          <label class="label">Sys ID groupe (optionnel)</label>
+          <input class="field" id="snGroupId" placeholder="Laisser vide = tous" />
+        </div>
+      </div>
+
+      <label class="label">Nom d'utilisateur</label>
+      <input class="field" id="snUser" placeholder="compte de service" />
+
+      <label class="label">Mot de passe</label>
+      <input class="field" type="password" id="snPass" placeholder="Non mémorisé entre les sessions" />
+
+      <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:#66757D; margin:-4px 0 12px;">
+        <input type="checkbox" id="snRemember" /> Mémoriser l'URL, la table et l'utilisateur sur cet appareil
+      </label>
+
+      <div id="snErreur" class="error" style="display:none;"></div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" id="btnFermerSn">Annuler</button>
+        <button class="btn-primary" id="btnLancerImportSn">Importer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="jourDetailOverlay">
+    <div class="modal" style="max-width:520px;">
+      <div class="eyebrow mono" id="jourDetailEyebrow">JOUR</div>
+      <h2 id="jourDetailTitre" style="margin-bottom:14px;">Tâches du jour</h2>
+      <div id="jourDetailListe" class="tiles-grid" style="grid-template-columns:1fr; max-height:60vh; overflow-y:auto; margin-bottom:16px;"></div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="btnFermerJourDetail">Fermer</button>
+        <button class="btn-primary" id="btnNouveauJourDetail">+ Nouveau ticket ce jour</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ghSyncOverlay">
+    <div class="modal" style="max-width:460px;">
+      <div class="eyebrow mono">SYNCHRONISATION</div>
+      <h2>Synchro GitHub</h2>
+      <div style="font-size:12.5px; color:#66757D; margin-bottom:14px;">
+        Stocke tes tâches dans un fichier de ton dépôt GitHub pour les retrouver sur n'importe quel navigateur ou appareil.
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label class="label">Propriétaire (owner)</label>
+          <input class="field" id="ghOwner" placeholder="ex. etienne69007" />
+        </div>
+        <div>
+          <label class="label">Dépôt</label>
+          <input class="field" id="ghRepo" placeholder="ex. gestionnaire-taches" />
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label class="label">Chemin du fichier</label>
+          <input class="field" id="ghPath" placeholder="taches.json" />
+        </div>
+        <div>
+          <label class="label">Branche</label>
+          <input class="field" id="ghBranch" placeholder="main" />
+        </div>
+      </div>
+
+      <label class="label">Jeton d'accès personnel (GitHub PAT)</label>
+      <input class="field" type="password" id="ghToken" placeholder="ghp_... (droits Contents: Read and write)" />
+
+      <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:#66757D; margin:-4px 0 6px;">
+        <input type="checkbox" id="ghRemember" /> Mémoriser la configuration et le jeton sur cet appareil
+      </label>
+      <div style="font-size:11.5px; color:#94A3AB; margin-bottom:12px;">
+        Déconseillé sur un poste partagé. Utilise un jeton "fine-grained" limité à ce seul dépôt (Contents: Read and write).
+      </div>
+
+      <div id="ghErreur" class="error" style="display:none;"></div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" id="btnFermerGh">Annuler</button>
+        <button class="btn-primary" id="btnLancerGhSync">Connecter et synchroniser</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "taches_v1";
+  var PRIORITES = [
+    { id: "haute", label: "Haute", color: "#D14F3B" },
+    { id: "moyenne", label: "Moyenne", color: "#B8790F" },
+    { id: "basse", label: "Basse", color: "#0E8C7A" }
+  ];
+  var STATUTS = ["À faire", "En cours", "Terminé"];
+  var TYPES = [
+    { id: "perso", label: "Personnel", color: "#3B6FA6" },
+    { id: "equipe", label: "Équipe", color: "#8C5A82" }
+  ];
+
+  var state = { taches: [], nextNum: 1 };
+  var draft = null;
+  var filtres = { type: "tous", statut: "tous", priorite: "tous", recherche: "", echeance: "tous", tri: "echeance" };
+
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+  function formatFR(dateStr) {
+    var d = new Date(dateStr + "T00:00:00");
+    return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+  }
+  function formatTicketId(n) { return "T-" + String(n).padStart(4, "0"); }
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function findBy(arr, id) { return arr.find(function (x) { return x.id === id; }); }
+
+  function dueMeta(dateStr, statut, heureStr) {
+    if (!dateStr) return { label: "Sans échéance", tone: "#66757D" };
+    var suffixeHeure = heureStr ? " à " + heureStr : "";
+    if (statut === "Terminé") return { label: formatFR(dateStr) + suffixeHeure, tone: "#248A55" };
+    var today = todayISO();
+    if (dateStr < today) return { label: "En retard · " + formatFR(dateStr) + suffixeHeure, tone: "#D14F3B" };
+    if (dateStr === today) return { label: "Aujourd'hui" + suffixeHeure, tone: "#B8790F" };
+    return { label: formatFR(dateStr) + suffixeHeure, tone: "#66757D" };
+  }
+
+  var PREFS_KEY = "prefs_v1";
+
+  function chargerPrefs() {
+    try {
+      var raw = localStorage.getItem(PREFS_KEY);
+      if (!raw) return;
+      var p = JSON.parse(raw);
+      if (p.filtres) {
+        filtres.type = p.filtres.type || "tous";
+        filtres.statut = p.filtres.statut || "tous";
+        filtres.priorite = p.filtres.priorite || "tous";
+        filtres.tri = p.filtres.tri || "echeance";
+        filtres.echeance = "tous";
+      }
+      if (p.vue) currentView = p.vue;
+    } catch (e) { /* ignore */ }
+  }
+
+  function sauverPrefs() {
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify({
+        filtres: { type: filtres.type, statut: filtres.statut, priorite: filtres.priorite, tri: filtres.tri },
+        vue: currentView
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        state.taches = parsed.taches || [];
+        state.nextNum = parsed.nextNum || 1;
+      }
+    } catch (e) { console.error("Erreur de lecture", e); }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) { console.error("Erreur de sauvegarde", e); }
+  }
+
+  function fillSelect(select, options) {
+    select.innerHTML = "";
+    options.forEach(function (opt) {
+      var o = document.createElement("option");
+      o.value = opt[0]; o.textContent = opt[1];
+      select.appendChild(o);
+    });
+  }
+
+  function renderFilters() {
+    fillSelect(document.getElementById("filtreType"),
+      [["tous", "Tous types"]].concat(TYPES.map(function (t) { return [t.id, t.label]; })));
+    fillSelect(document.getElementById("filtreStatut"),
+      [["tous", "Tous statuts"]].concat(STATUTS.map(function (s) { return [s, s]; })));
+    fillSelect(document.getElementById("filtrePriorite"),
+      [["tous", "Toutes priorités"]].concat(PRIORITES.map(function (p) { return [p.id, p.label]; })));
+    fillSelect(document.getElementById("filtreTri"), [
+      ["echeance", "Trier : Échéance"],
+      ["priorite", "Trier : Priorité"],
+      ["creation", "Trier : Création (récent)"]
+    ]);
+  }
+
+  function renderStats() {
+    var ouverts = state.taches.filter(function (t) { return t.statut !== "Terminé"; }).length;
+    var enCours = state.taches.filter(function (t) { return t.statut === "En cours"; }).length;
+    var retard = state.taches.filter(function (t) {
+      return t.statut !== "Terminé" && t.echeance && t.echeance < todayISO();
+    }).length;
+    var termineAuj = state.taches.filter(function (t) {
+      return t.statut === "Terminé" && t.termineLe === todayISO();
+    }).length;
+
+    var stats = [
+      { label: "Ouverts", value: ouverts, color: "#1B232C" },
+      { label: "En cours", value: enCours, color: "#B8790F" },
+      { label: "En retard", value: retard, color: "#D14F3B" },
+      { label: "Terminés aujourd'hui", value: termineAuj, color: "#248A55" }
+    ];
+
+    var row = document.getElementById("statRow");
+    row.innerHTML = "";
+    stats.forEach(function (s) {
+      var card = document.createElement("div");
+      card.className = "stat-card";
+      card.innerHTML =
+        '<div class="stat-value mono" style="color:' + s.color + '">' + s.value + "</div>" +
+        '<div class="stat-label">' + s.label + "</div>";
+      row.appendChild(card);
+    });
+  }
+
+  function getFilteredList() {
+    var list = state.taches.slice();
+    if (filtres.type !== "tous") list = list.filter(function (t) { return t.type === filtres.type; });
+    if (filtres.statut !== "tous") list = list.filter(function (t) { return t.statut === filtres.statut; });
+    if (filtres.priorite !== "tous") list = list.filter(function (t) { return t.priorite === filtres.priorite; });
+    if (filtres.echeance === "retard") {
+      var today0 = todayISO();
+      list = list.filter(function (t) { return t.statut !== "Terminé" && t.echeance && t.echeance < today0; });
+    } else if (filtres.echeance === "aujourdhui") {
+      var today1 = todayISO();
+      list = list.filter(function (t) { return t.statut !== "Terminé" && t.echeance === today1; });
+    }
+    if (filtres.recherche.trim()) {
+      var q = filtres.recherche.toLowerCase();
+      list = list.filter(function (t) {
+        return t.titre.toLowerCase().indexOf(q) !== -1 ||
+          (t.description || "").toLowerCase().indexOf(q) !== -1 ||
+          (t.assigne || "").toLowerCase().indexOf(q) !== -1 ||
+          (t.snTicket || "").toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    var rangPriorite = { haute: 1, moyenne: 2, basse: 3 };
+    list.sort(function (a, b) {
+      if (a.statut === "Terminé" && b.statut !== "Terminé") return 1;
+      if (b.statut === "Terminé" && a.statut !== "Terminé") return -1;
+      if (filtres.tri === "priorite") {
+        return (rangPriorite[a.priorite] || 2) - (rangPriorite[b.priorite] || 2);
+      }
+      if (filtres.tri === "creation") {
+        var ca = a.creeLe || "";
+        var cb = b.creeLe || "";
+        if (ca !== cb) return cb.localeCompare(ca);
+        return (b.numero || 0) - (a.numero || 0);
+      }
+      var da = a.echeance || "9999-99-99";
+      var db = b.echeance || "9999-99-99";
+      return da.localeCompare(db);
+    });
+    return list;
+  }
+
+  var currentView = "liste";
+  var calendrierMois = new Date();
+
+  function buildCard(t) {
+    var prio = findBy(PRIORITES, t.priorite) || PRIORITES[1];
+    var type = findBy(TYPES, t.type) || TYPES[0];
+    var due = dueMeta(t.echeance, t.statut, t.echeanceHeure);
+
+    var card = document.createElement("div");
+    card.className = "card";
+    card.style.borderLeft = "3px solid " + prio.color;
+
+    var titleClass = "title" + (t.statut === "Terminé" ? " done" : "");
+
+    var assigneTag = (t.type === "equipe" && t.assigne)
+      ? '<span class="tag" style="background:#66757D1A;color:#66757D;border-color:#66757D40;">' + escapeHtml(t.assigne) + "</span>"
+      : "";
+
+    var metaParts = [];
+    if (t.notes && t.notes.length) metaParts.push("📝 " + t.notes.length);
+    if (t.recurrence && t.recurrence !== "aucune") metaParts.push("🔁 " + recurrenceLabel(t.recurrence));
+    var metaBadge = metaParts.length
+      ? '<span class="sn-badge mono">' + metaParts.join(" · ") + "</span>"
+      : "";
+
+    var snBadge = t.snTicket
+      ? '<span class="sn-badge mono">🔗 ' + escapeHtml(t.snTicket) + "</span>"
+      : "";
+
+    card.innerHTML =
+      '<div class="card-top">' +
+        '<div class="card-left">' +
+          '<span class="ticket-id mono">' + formatTicketId(t.numero) + "</span>" +
+          '<span class="' + titleClass + '">' + escapeHtml(t.titre) + "</span>" +
+          snBadge +
+        "</div>" +
+        '<div class="card-actions">' +
+          '<button class="icon-btn" data-action="edit" data-id="' + t.id + '">Modifier</button>' +
+          (t.echeance ? '<button class="icon-btn icon-only" data-action="outlook" data-id="' + t.id + '" title="Exporter vers Outlook">📅</button>' : "") +
+          '<button class="icon-btn icon-only danger" data-action="delete" data-id="' + t.id + '" title="Supprimer">🗑</button>' +
+        "</div>" +
+      "</div>" +
+      (t.description ? '<div class="desc">' + escapeHtml(t.description) + "</div>" : "") +
+      '<div class="card-bottom">' +
+        '<span class="tag" style="background:' + type.color + '22;color:' + type.color + ';border-color:' + type.color + '55;">' + type.label + "</span>" +
+        assigneTag +
+        '<span class="tag" data-action="cycle-priorite" data-id="' + t.id + '" title="Cliquer pour changer la priorité" ' +
+          'style="cursor:pointer;background:' + prio.color + '22;color:' + prio.color + ';border-color:' + prio.color + '55;">' + prio.label + "</span>" +
+        metaBadge +
+        '<span class="due mono" style="color:' + due.tone + ';">' + due.label + "</span>" +
+        '<select class="status-select" data-action="status" data-id="' + t.id + '"></select>' +
+      "</div>";
+
+    var statusSelect = card.querySelector('[data-action="status"]');
+    fillSelect(statusSelect, STATUTS.map(function (s) { return [s, s]; }));
+    statusSelect.value = t.statut;
+
+    return card;
+  }
+
+  var jourDetailDateActuelle = null;
+
+  function ouvrirJourDetail(dateStr) {
+    jourDetailDateActuelle = dateStr;
+    renderJourDetail();
+    document.getElementById("jourDetailOverlay").classList.add("open");
+  }
+
+  function renderJourDetail() {
+    if (!jourDetailDateActuelle) return;
+    var dateStr = jourDetailDateActuelle;
+    var taches = getFilteredList().filter(function (t) { return t.echeance === dateStr; });
+    document.getElementById("jourDetailEyebrow").textContent = formatFR(dateStr).toUpperCase();
+    document.getElementById("jourDetailTitre").textContent =
+      taches.length + (taches.length > 1 ? " tâches ce jour-là" : " tâche ce jour-là");
+    var container = document.getElementById("jourDetailListe");
+    container.innerHTML = "";
+    taches.forEach(function (t) { container.appendChild(buildCard(t)); });
+  }
+
+  function fermerJourDetail() {
+    document.getElementById("jourDetailOverlay").classList.remove("open");
+    jourDetailDateActuelle = null;
+  }
+
+  function renderCalendrier(list, container) {
+    var annee = calendrierMois.getFullYear();
+    var mois = calendrierMois.getMonth();
+    var today = todayISO();
+
+    var parJour = {};
+    var sansEcheance = [];
+    list.forEach(function (t) {
+      if (!t.echeance) { sansEcheance.push(t); return; }
+      if (!parJour[t.echeance]) parJour[t.echeance] = [];
+      parJour[t.echeance].push(t);
+    });
+
+    var header = document.createElement("div");
+    header.className = "calendar-header";
+    var titreMois = calendrierMois.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    header.innerHTML =
+      '<div class="calendar-title">' + escapeHtml(titreMois) + "</div>" +
+      '<div class="calendar-nav">' +
+        '<button class="calendar-nav-btn" data-action="cal-prev">‹ Précédent</button>' +
+        '<button class="calendar-nav-btn" data-action="cal-today">Aujourd\'hui</button>' +
+        '<button class="calendar-nav-btn" data-action="cal-next">Suivant ›</button>' +
+      "</div>";
+    container.appendChild(header);
+
+    var weekdays = document.createElement("div");
+    weekdays.className = "calendar-weekdays";
+    ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].forEach(function (j) {
+      var el = document.createElement("div");
+      el.className = "calendar-weekday";
+      el.textContent = j;
+      weekdays.appendChild(el);
+    });
+    container.appendChild(weekdays);
+
+    var grid = document.createElement("div");
+    grid.className = "calendar-grid";
+
+    var premierJour = new Date(annee, mois, 1);
+    var decalage = (premierJour.getDay() + 6) % 7; // lundi = 0
+    var nbJours = new Date(annee, mois + 1, 0).getDate();
+    var nbJoursMoisPrecedent = new Date(annee, mois, 0).getDate();
+
+    var cellules = [];
+    for (var i = 0; i < decalage; i++) {
+      cellules.push({ jour: nbJoursMoisPrecedent - decalage + i + 1, horsMois: true });
+    }
+    for (var j2 = 1; j2 <= nbJours; j2++) {
+      cellules.push({ jour: j2, horsMois: false });
+    }
+    while (cellules.length % 7 !== 0) {
+      cellules.push({ jour: cellules.length - decalage - nbJours + 1, horsMois: true });
+    }
+
+    cellules.forEach(function (c) {
+      var dateStr;
+      if (c.horsMois) {
+        dateStr = "";
+      } else {
+        dateStr = annee + "-" + pad(mois + 1) + "-" + pad(c.jour);
+      }
+      var cell = document.createElement("div");
+      cell.className = "calendar-day" + (c.horsMois ? " hors-mois" : "") + (dateStr === today ? " aujourdhui" : "");
+      if (!c.horsMois) {
+        cell.setAttribute("data-action", "cal-new-day");
+        cell.setAttribute("data-date", dateStr);
+      }
+
+      var html = '<div class="calendar-daynum">' + c.jour + "</div>";
+      var tachesJour = (!c.horsMois && parJour[dateStr]) ? parJour[dateStr] : [];
+      tachesJour.slice(0, 3).forEach(function (t) {
+        var prio = findBy(PRIORITES, t.priorite) || PRIORITES[1];
+        html += '<div class="calendar-chip" data-action="edit" data-id="' + t.id +
+          '" style="border-left-color:' + prio.color + ';' +
+          (t.statut === "Terminé" ? "text-decoration:line-through;color:#94A3AB;" : "") + '">' +
+          (t.echeanceHeure ? t.echeanceHeure + " " : "") + escapeHtml(t.titre) + "</div>";
+      });
+      if (tachesJour.length > 3) {
+        html += '<div class="calendar-more" data-action="cal-more" data-date="' + dateStr + '" style="cursor:pointer;text-decoration:underline;">+' + (tachesJour.length - 3) + " autre(s)</div>";
+      }
+      cell.innerHTML = html;
+      grid.appendChild(cell);
+    });
+
+    container.appendChild(grid);
+
+    if (sansEcheance.length > 0) {
+      var titre = document.createElement("div");
+      titre.className = "no-echeance-header";
+      titre.textContent = "Sans échéance (" + sansEcheance.length + ")";
+      container.appendChild(titre);
+      var grilleSans = document.createElement("div");
+      grilleSans.className = "tiles-grid";
+      sansEcheance.forEach(function (t) { grilleSans.appendChild(buildCard(t)); });
+      container.appendChild(grilleSans);
+    }
+  }
+
+  function updateBarreFiltre(nbAffiches) {
+    var chip = document.getElementById("filtreEcheanceChip");
+    if (filtres.echeance === "retard") {
+      chip.style.display = "inline-flex";
+      chip.innerHTML = "Filtré : en retard <button data-clear>✕</button>";
+    } else if (filtres.echeance === "aujourdhui") {
+      chip.style.display = "inline-flex";
+      chip.innerHTML = "Filtré : aujourd'hui <button data-clear>✕</button>";
+    } else {
+      chip.style.display = "none";
+      chip.innerHTML = "";
+    }
+    document.getElementById("compteurAffichage").textContent =
+      nbAffiches + " affiché(s) sur " + state.taches.length;
+  }
+
+  function renderList() {
+    var container = document.getElementById("liste");
+    var list = getFilteredList();
+    container.innerHTML = "";
+    updateBarreFiltre(list.length);
+
+    if (currentView === "calendrier") {
+      renderCalendrier(list, container);
+      return;
+    }
+
+    if (list.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.innerHTML =
+        '<div class="empty-eyebrow mono">AUCUN TICKET</div>' +
+        '<div class="empty-text">' +
+        (state.taches.length === 0
+          ? "Rien à traiter pour le moment. Crée ton premier ticket."
+          : "Aucun ticket ne correspond à ces filtres.") +
+        "</div>";
+      container.appendChild(empty);
+      return;
+    }
+
+    if (currentView === "technicien") {
+      var groupes = {};
+      var ordre = [];
+      list.forEach(function (t) {
+        var key = (t.type === "equipe" && t.assigne) ? t.assigne : "Personnel / non assigné";
+        if (!groupes[key]) { groupes[key] = []; ordre.push(key); }
+        groupes[key].push(t);
+      });
+      ordre.sort(function (a, b) {
+        if (a === "Personnel / non assigné") return 1;
+        if (b === "Personnel / non assigné") return -1;
+        return a.localeCompare(b);
+      });
+      ordre.forEach(function (key) {
+        var header = document.createElement("div");
+        header.className = "group-header";
+        header.innerHTML = "<span>" + escapeHtml(key) + '</span><span class="group-count mono">' + groupes[key].length + "</span>";
+        container.appendChild(header);
+        var grille = document.createElement("div");
+        grille.className = "tiles-grid";
+        groupes[key].forEach(function (t) { grille.appendChild(buildCard(t)); });
+        container.appendChild(grille);
+      });
+    } else {
+      var grilleListe = document.createElement("div");
+      grilleListe.className = "tiles-grid";
+      list.forEach(function (t) { grilleListe.appendChild(buildCard(t)); });
+      container.appendChild(grilleListe);
+    }
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderAll() {
+    renderStats();
+    renderList();
+    renderAlertBanner();
+    save();
+    planifierGhPush();
+    if (jourDetailDateActuelle) renderJourDetail();
+  }
+
+  // ---- Alertes d'échéance ----
+  function renderAlertBanner() {
+    var banner = document.getElementById("alertBanner");
+    var today = todayISO();
+    var enRetard = state.taches.filter(function (t) {
+      return t.statut !== "Terminé" && t.echeance && t.echeance < today;
+    });
+    var auj = state.taches.filter(function (t) {
+      return t.statut !== "Terminé" && t.echeance === today;
+    });
+
+    if (enRetard.length === 0 && auj.length === 0) {
+      banner.style.display = "none";
+      banner.innerHTML = "";
+      return;
+    }
+
+    var html = "";
+    if (enRetard.length > 0) {
+      html += '<div class="alert-banner retard">' +
+        '<div class="alert-banner-titre" data-action="filtrer" data-cible="retard" style="cursor:pointer;">⚠️ ' + enRetard.length +
+        (enRetard.length > 1 ? " tâches en retard :" : " tâche en retard :") +
+        ' <span style="font-weight:400; font-size:11px; opacity:0.75;">(cliquer pour filtrer)</span></div>' +
+        enRetard.slice(0, 5).map(function (t) {
+          return '<div class="alert-banner-item">- ' + escapeHtml(t.titre) +
+            (t.echeanceHeure ? " (" + t.echeanceHeure + ")" : "") + "</div>";
+        }).join("") +
+        (enRetard.length > 5 ? '<div class="alert-banner-item">- … et ' + (enRetard.length - 5) + " autre(s)</div>" : "") +
+        "</div>";
+    }
+    if (auj.length > 0) {
+      html += '<div class="alert-banner aujourdhui">' +
+        '<div class="alert-banner-titre" data-action="filtrer" data-cible="aujourdhui" style="cursor:pointer;">⏰ ' + auj.length +
+        (auj.length > 1 ? " tâches à échéance aujourd'hui :" : " tâche à échéance aujourd'hui :") +
+        ' <span style="font-weight:400; font-size:11px; opacity:0.75;">(cliquer pour filtrer)</span></div>' +
+        auj.slice(0, 5).map(function (t) {
+          return '<div class="alert-banner-item">- ' + escapeHtml(t.titre) +
+            (t.echeanceHeure ? " (" + t.echeanceHeure + ")" : "") + "</div>";
+        }).join("") +
+        (auj.length > 5 ? '<div class="alert-banner-item">- … et ' + (auj.length - 5) + " autre(s)</div>" : "") +
+        "</div>";
+    }
+    banner.innerHTML = html;
+    banner.style.display = "block";
+  }
+
+  // ---- Rapport hebdomadaire ----
+  function calculerRapport() {
+    var septJoursAvant = new Date();
+    septJoursAvant.setDate(septJoursAvant.getDate() - 7);
+    var seuil = septJoursAvant.getFullYear() + "-" + pad(septJoursAvant.getMonth() + 1) + "-" + pad(septJoursAvant.getDate());
+    var today = todayISO();
+
+    var groupes = {};
+    var ordre = [];
+    state.taches.forEach(function (t) {
+      var key = (t.type === "equipe" && t.assigne) ? t.assigne : "Personnel / non assigné";
+      if (!groupes[key]) { groupes[key] = []; ordre.push(key); }
+      groupes[key].push(t);
+    });
+    ordre.sort(function (a, b) {
+      if (a === "Personnel / non assigné") return 1;
+      if (b === "Personnel / non assigné") return -1;
+      return a.localeCompare(b);
+    });
+
+    return ordre.map(function (key) {
+      var taches = groupes[key];
+      var termineesSemaine = taches.filter(function (t) {
+        return t.statut === "Terminé" && t.termineLe && t.termineLe >= seuil;
+      }).length;
+      var enCours = taches.filter(function (t) { return t.statut === "En cours"; }).length;
+      var enRetard = taches.filter(function (t) {
+        return t.statut !== "Terminé" && t.echeance && t.echeance < today;
+      }).length;
+      var actives = taches.filter(function (t) { return t.statut !== "Terminé"; }).length;
+      return { nom: key, termineesSemaine: termineesSemaine, enCours: enCours, enRetard: enRetard, actives: actives };
+    });
+  }
+
+  // ---- Import ServiceNow ----
+  var SN_CONFIG_KEY = "sn_config_v1";
+  var snPasswordMemoire = "";
+
+  function chargerConfigSn() {
+    try {
+      var raw = localStorage.getItem(SN_CONFIG_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function ouvrirImportSn() {
+    var cfg = chargerConfigSn();
+    document.getElementById("snUrl").value = cfg.url || "";
+    document.getElementById("snTable").value = cfg.table || "incident";
+    document.getElementById("snGroupId").value = cfg.groupId || "";
+    document.getElementById("snUser").value = cfg.username || "";
+    document.getElementById("snPass").value = "";
+    document.getElementById("snRemember").checked = !!cfg.remember;
+    document.getElementById("snErreur").style.display = "none";
+    document.getElementById("snOverlay").classList.add("open");
+  }
+
+  function fermerImportSn() {
+    document.getElementById("snOverlay").classList.remove("open");
+  }
+
+  function snShowErreur(msg) {
+    var el = document.getElementById("snErreur");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function snFetch(base, table, query, username) {
+    var url = base + "/api/now/table/" + table +
+      "?sysparm_query=" + encodeURIComponent(query) +
+      "&sysparm_fields=number,short_description,priority,assigned_to,state" +
+      "&sysparm_display_value=all&sysparm_limit=200";
+    return fetch(url, {
+      method: "GET",
+      headers: {
+        "Authorization": "Basic " + btoa(username + ":" + snPasswordMemoire),
+        "Accept": "application/json"
+      }
+    }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status + " (" + r.statusText + ")");
+      return r.json();
+    }).then(function (data) { return data.result || []; });
+  }
+
+  function snVal(field) {
+    if (!field) return "";
+    if (typeof field === "object") return field.display_value || field.value || "";
+    return field;
+  }
+
+  function snMapPriorite(field) {
+    var v = field && field.value ? field.value : field;
+    v = String(v || "");
+    if (v === "1" || v === "2") return "haute";
+    if (v === "3") return "moyenne";
+    return "basse";
+  }
+
+  function snFusionner(records, statutParDefaut) {
+    var crees = 0;
+    var majs = 0;
+    records.forEach(function (rec) {
+      var numero = snVal(rec.number);
+      if (!numero) return;
+
+      var desc = snVal(rec.short_description);
+      var assigne = snVal(rec.assigned_to);
+      var priorite = snMapPriorite(rec.priority);
+
+      var existanteIdx = state.taches.findIndex(function (t) { return t.snTicket === numero; });
+
+      if (existanteIdx !== -1) {
+        var t = state.taches[existanteIdx];
+        var change = false;
+        if (t.description !== desc) { t.description = desc; t.titre = numero + (desc ? " — " + desc : ""); change = true; }
+        if (t.assigne !== assigne) { t.assigne = assigne; change = true; }
+        if (t.priorite !== priorite) { t.priorite = priorite; change = true; }
+        if (t.statut !== "Terminé" && t.statut !== statutParDefaut) { t.statut = statutParDefaut; change = true; }
+        if (change) majs += 1;
+        return;
+      }
+
+      state.taches.push({
+        id: uid(),
+        numero: state.nextNum,
+        titre: numero + (desc ? " — " + desc : ""),
+        description: desc,
+        type: "equipe",
+        assigne: assigne,
+        priorite: priorite,
+        echeance: "",
+        statut: statutParDefaut,
+        notes: [],
+        snTicket: numero,
+        recurrence: "aucune",
+        creeLe: todayISO(),
+        termineLe: null
+      });
+      state.nextNum += 1;
+      crees += 1;
+    });
+    return { crees: crees, majs: majs };
+  }
+
+  function lancerImportSn() {
+    var url = document.getElementById("snUrl").value.trim().replace(/\/+$/, "");
+    var table = document.getElementById("snTable").value.trim() || "incident";
+    var groupId = document.getElementById("snGroupId").value.trim();
+    var username = document.getElementById("snUser").value.trim();
+    var password = document.getElementById("snPass").value;
+    var remember = document.getElementById("snRemember").checked;
+
+    if (!url || !username || !password) {
+      snShowErreur("Renseigne l'URL de l'instance, le nom d'utilisateur et le mot de passe.");
+      return;
+    }
+
+    snPasswordMemoire = password;
+
+    if (remember) {
+      localStorage.setItem(SN_CONFIG_KEY, JSON.stringify({
+        url: url, table: table, groupId: groupId, username: username, remember: true
+      }));
+    } else {
+      localStorage.removeItem(SN_CONFIG_KEY);
+    }
+
+    var groupFiltre = groupId ? "^assignment_group=" + groupId : "";
+    var requeteAssignes = "active=true^assigned_toISNOTEMPTY" + groupFiltre;
+    var requeteNonAffectes = "active=true^assigned_toISEMPTY" + groupFiltre;
+
+    var btn = document.getElementById("btnLancerImportSn");
+    btn.disabled = true;
+    btn.textContent = "Import en cours…";
+
+    Promise.all([
+      snFetch(url, table, requeteAssignes, username),
+      snFetch(url, table, requeteNonAffectes, username)
+    ]).then(function (resultats) {
+      var r1 = snFusionner(resultats[0], "En cours");
+      var r2 = snFusionner(resultats[1], "À faire");
+      btn.disabled = false;
+      btn.textContent = "Importer";
+      fermerImportSn();
+      renderAll();
+      var totalCrees = r1.crees + r2.crees;
+      var totalMajs = r1.majs + r2.majs;
+      alert(totalCrees + " ticket(s) créé(s) et " + totalMajs + " mis à jour depuis ServiceNow (" +
+        r1.crees + " assigné(s) en cours, " + r2.crees + " non affecté(s)).");
+    }).catch(function (e) {
+      btn.disabled = false;
+      btn.textContent = "Importer";
+      snShowErreur(
+        "Échec de l'import. Vérifie l'URL, les identifiants, et qu'une règle CORS " +
+        "autorise l'origine " + window.location.origin + " dans ServiceNow (table sys_cors). Détail : " + e.message
+      );
+    });
+  }
+
+  // ---- Synchronisation GitHub ----
+  var GH_CONFIG_KEY = "gh_sync_config_v1";
+  var ghToken = "";
+  var ghSha = null;
+  var ghConnecte = false;
+  var ghPushTimer = null;
+
+  function chargerConfigGh() {
+    try {
+      var raw = localStorage.getItem(GH_CONFIG_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function ghSetInfo(texte) {
+    document.getElementById("ghSyncInfo").textContent = texte;
+  }
+
+  function ouvrirGhSync() {
+    var cfg = chargerConfigGh();
+    document.getElementById("ghOwner").value = cfg.owner || "";
+    document.getElementById("ghRepo").value = cfg.repo || "";
+    document.getElementById("ghPath").value = cfg.path || "taches.json";
+    document.getElementById("ghBranch").value = cfg.branch || "main";
+    document.getElementById("ghToken").value = cfg.remember ? (cfg.token || "") : "";
+    document.getElementById("ghRemember").checked = !!cfg.remember;
+    document.getElementById("ghErreur").style.display = "none";
+    document.getElementById("ghSyncOverlay").classList.add("open");
+  }
+
+  function fermerGhSync() {
+    document.getElementById("ghSyncOverlay").classList.remove("open");
+  }
+
+  function ghShowErreur(msg) {
+    var el = document.getElementById("ghErreur");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function ghConfigActuelle() {
+    var cfg = chargerConfigGh();
+    return { owner: cfg.owner, repo: cfg.repo, path: cfg.path || "taches.json", branch: cfg.branch || "main" };
+  }
+
+  function ghApiUrl(cfg) {
+    return "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" +
+      encodeURIComponent(cfg.path) + "?ref=" + encodeURIComponent(cfg.branch);
+  }
+
+  function ghHeaders() {
+    return {
+      "Authorization": "Bearer " + ghToken,
+      "Accept": "application/vnd.github+json"
+    };
+  }
+
+  function ghPull(cfg) {
+    return fetch(ghApiUrl(cfg), { headers: ghHeaders() }).then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (data) {
+      if (!data) { ghSha = null; return null; }
+      ghSha = data.sha;
+      var decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ""))));
+      return JSON.parse(decoded);
+    });
+  }
+
+  function ghPush() {
+    if (!ghConnecte || !ghToken) return;
+    var cfg = ghConfigActuelle();
+    if (!cfg.owner || !cfg.repo) return;
+    var payload = JSON.stringify({ taches: state.taches, nextNum: state.nextNum });
+    var encoded = btoa(unescape(encodeURIComponent(payload)));
+    var body = {
+      message: "Mise à jour des tâches — " + new Date().toISOString(),
+      content: encoded,
+      branch: cfg.branch
+    };
+    if (ghSha) body.sha = ghSha;
+
+    fetch("https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + encodeURIComponent(cfg.path), {
+      method: "PUT",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (r.status === 409 || r.status === 422) {
+        return ghPull(cfg).then(function () { return ghPush(); });
+      }
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (data) {
+      if (data && data.content && data.content.sha) ghSha = data.content.sha;
+      ghSetInfo("Synchronisé avec GitHub à " + new Date().toLocaleTimeString("fr-FR"));
+    }).catch(function (e) {
+      ghSetInfo("Échec de synchronisation GitHub (" + e.message + ")");
+    });
+  }
+
+  function planifierGhPush() {
+    if (!ghConnecte) return;
+    if (ghPushTimer) clearTimeout(ghPushTimer);
+    ghPushTimer = setTimeout(ghPush, 2000);
+  }
+
+  function lancerGhSync() {
+    var owner = document.getElementById("ghOwner").value.trim();
+    var repo = document.getElementById("ghRepo").value.trim();
+    var path = document.getElementById("ghPath").value.trim() || "taches.json";
+    var branch = document.getElementById("ghBranch").value.trim() || "main";
+    var token = document.getElementById("ghToken").value.trim();
+    var remember = document.getElementById("ghRemember").checked;
+
+    if (!owner || !repo || !token) {
+      ghShowErreur("Renseigne le propriétaire, le dépôt et le jeton d'accès.");
+      return;
+    }
+
+    ghToken = token;
+    var cfg = { owner: owner, repo: repo, path: path, branch: branch, remember: remember };
+    if (remember) {
+      cfg.token = token;
+      localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(cfg));
+    } else {
+      localStorage.setItem(GH_CONFIG_KEY, JSON.stringify({ owner: owner, repo: repo, path: path, branch: branch, remember: false }));
+    }
+
+    var btn = document.getElementById("btnLancerGhSync");
+    btn.disabled = true;
+    btn.textContent = "Connexion…";
+
+    ghPull({ owner: owner, repo: repo, path: path, branch: branch }).then(function (distant) {
+      btn.disabled = false;
+      btn.textContent = "Connecter et synchroniser";
+      ghConnecte = true;
+
+      if (distant && Array.isArray(distant.taches)) {
+        var remplacer = confirm(
+          distant.taches.length + " tâche(s) trouvée(s) sur GitHub.\n\n" +
+          "Clique OK pour charger la version GitHub (remplace les tâches locales), " +
+          "ou Annuler pour garder tes tâches locales et les envoyer vers GitHub."
+        );
+        if (remplacer) {
+          state.taches = distant.taches;
+          state.nextNum = distant.nextNum || 1;
+          renderAll();
+        } else {
+          ghPush();
+        }
+      } else {
+        // Aucun fichier distant : on envoie l'état local
+        ghPush();
+      }
+
+      fermerGhSync();
+      ghSetInfo("Synchro GitHub activée (" + owner + "/" + repo + ")");
+    }).catch(function (e) {
+      btn.disabled = false;
+      btn.textContent = "Connecter et synchroniser";
+      ghShowErreur("Échec de connexion. Vérifie le propriétaire, le dépôt et le jeton (droits Contents: Read and write). Détail : " + e.message);
+    });
+  }
+
+  function synchroniserMaintenant() {
+    if (!ghConnecte) {
+      ouvrirGhSync();
+      return;
+    }
+    ghSetInfo("Synchronisation en cours…");
+    ghPush();
+  }
+
+  function initGhSync() {
+    var cfg = chargerConfigGh();
+    if (cfg.remember && cfg.owner && cfg.repo && cfg.token) {
+      ghToken = cfg.token;
+      ghConnecte = true;
+      ghPull(cfg).then(function (distant) {
+        if (distant && Array.isArray(distant.taches)) {
+          state.taches = distant.taches;
+          state.nextNum = distant.nextNum || 1;
+          renderAll();
+        }
+        ghSetInfo("Synchro GitHub active (" + cfg.owner + "/" + cfg.repo + ")");
+      }).catch(function (e) {
+        ghSetInfo("Échec de synchronisation GitHub au chargement (" + e.message + ")");
+      });
+    }
+  }
+
+  function ouvrirRapport() {
+    var lignes = calculerRapport();
+    var totalT = lignes.reduce(function (s, l) { return s + l.termineesSemaine; }, 0);
+    var totalEC = lignes.reduce(function (s, l) { return s + l.enCours; }, 0);
+    var totalR = lignes.reduce(function (s, l) { return s + l.enRetard; }, 0);
+    var totalA = lignes.reduce(function (s, l) { return s + l.actives; }, 0);
+
+    var html = '<table class="rapport-table"><thead><tr>' +
+      "<th>Technicien</th><th>Terminées (7j)</th><th>En cours</th><th>En retard</th><th>Actives</th>" +
+      "</tr></thead><tbody>";
+    lignes.forEach(function (l) {
+      html += "<tr><td>" + escapeHtml(l.nom) + "</td><td>" + l.termineesSemaine + "</td><td>" +
+        l.enCours + "</td><td>" + l.enRetard + "</td><td>" + l.actives + "</td></tr>";
+    });
+    html += "<tr><td>Total</td><td>" + totalT + "</td><td>" + totalEC + "</td><td>" +
+      totalR + "</td><td>" + totalA + "</td></tr></tbody></table>";
+
+    document.getElementById("rapportContenu").innerHTML = html;
+    document.getElementById("rapportOverlay").classList.add("open");
+  }
+
+  function fermerRapport() {
+    document.getElementById("rapportOverlay").classList.remove("open");
+  }
+
+  function texteRapport() {
+    var lignes = calculerRapport();
+    var d = new Date();
+    var out = "RAPPORT HEBDOMADAIRE — " + d.toLocaleDateString("fr-FR") + "\n";
+    out += "Terminées : 7 derniers jours\n\n";
+    lignes.forEach(function (l) {
+      out += l.nom + "\n";
+      out += "  Terminées (7j) : " + l.termineesSemaine + "\n";
+      out += "  En cours       : " + l.enCours + "\n";
+      out += "  En retard      : " + l.enRetard + "\n";
+      out += "  Actives        : " + l.actives + "\n\n";
+    });
+    return out;
+  }
+
+  function copierRapport() {
+    var texte = texteRapport();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(texte).then(function () {
+        alert("Rapport copié dans le presse-papiers.");
+      }).catch(function () {
+        alert("Impossible de copier automatiquement. Utilise plutôt Télécharger .txt.");
+      });
+    } else {
+      alert("Copie non supportée par ce navigateur. Utilise Télécharger .txt.");
+    }
+  }
+
+  function telechargerRapport() {
+    var blob = new Blob([texteRapport()], { type: "text/plain" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "rapport-hebdo-" + todayISO() + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function activerNotifications() {
+    if (!("Notification" in window)) {
+      alert("Ton navigateur ne supporte pas les notifications.");
+      return;
+    }
+    Notification.requestPermission().then(function (perm) {
+      var btn = document.getElementById("btnNotifs");
+      if (perm === "granted") {
+        btn.classList.add("actif");
+        btn.title = "Alertes activées";
+        checkNotifications();
+      } else {
+        btn.classList.remove("actif");
+        btn.title = "Alertes refusées — clique pour réessayer";
+      }
+    });
+  }
+
+  function checkNotifications() {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    var today = todayISO();
+    var maintenant = new Date();
+    var notifKey = "notifs_envoyees_" + today;
+    var deja = [];
+    try { deja = JSON.parse(localStorage.getItem(notifKey) || "[]"); } catch (e) { deja = []; }
+
+    var aNotifier = state.taches.filter(function (t) {
+      if (t.statut === "Terminé" || !t.echeance || deja.indexOf(t.id) !== -1) return false;
+      if (t.echeance < today) return true;
+      if (t.echeance === today) {
+        if (!t.echeanceHeure) return true;
+        var momentEcheance = new Date(t.echeance + "T" + t.echeanceHeure + ":00");
+        return maintenant >= momentEcheance;
+      }
+      return false;
+    });
+
+    aNotifier.forEach(function (t) {
+      var enRetard = t.echeance < today;
+      var heureTxt = t.echeanceHeure ? " à " + t.echeanceHeure : "";
+      new Notification(enRetard ? "Tâche en retard" : "Échéance aujourd'hui" + heureTxt, {
+        body: formatTicketId(t.numero) + " · " + t.titre,
+        tag: t.id
+      });
+      deja.push(t.id);
+    });
+
+    if (aNotifier.length > 0) {
+      localStorage.setItem(notifKey, JSON.stringify(deja));
+    }
+  }
+
+  // ---- Export Outlook (.ics) ----
+  function icsEscape(str) {
+    return String(str || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/;/g, "\\;")
+      .replace(/,/g, "\\,")
+      .replace(/\n/g, "\\n");
+  }
+
+  function icsDate(dateStr, hhmm) {
+    // dateStr: YYYY-MM-DD, hhmm: [h, m] -> floating local time YYYYMMDDTHHMMSS
+    var parts = dateStr.split("-");
+    var hh = pad(hhmm[0]), mm = pad(hhmm[1]);
+    return parts[0] + parts[1] + parts[2] + "T" + hh + mm + "00";
+  }
+
+  function icsStamp() {
+    var d = new Date();
+    return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + "T" +
+      pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds()) + "Z";
+  }
+
+  function foldLine(line) {
+    if (line.length <= 74) return line;
+    var out = [];
+    var i = 0;
+    while (i < line.length) {
+      out.push((i === 0 ? "" : " ") + line.slice(i, i + 74));
+      i += 74;
+    }
+    return out.join("\r\n");
+  }
+
+  function buildVEvent(t) {
+    var heure = t.echeanceHeure ? t.echeanceHeure.split(":").map(Number) : [9, 0];
+    var start = icsDate(t.echeance, heure);
+    var finDate = new Date(t.echeance + "T" + pad(heure[0]) + ":" + pad(heure[1]) + ":00");
+    finDate.setMinutes(finDate.getMinutes() + 30);
+    var end = icsDate(t.echeance, [finDate.getHours(), finDate.getMinutes()]);
+    var lines = [
+      "BEGIN:VEVENT",
+      "UID:" + t.id + "@gestionnaire-taches",
+      "DTSTAMP:" + icsStamp(),
+      "DTSTART:" + start,
+      "DTEND:" + end,
+      "SUMMARY:" + icsEscape(formatTicketId(t.numero) + " — " + t.titre),
+      "DESCRIPTION:" + icsEscape(t.description || ""),
+      "BEGIN:VALARM",
+      "ACTION:DISPLAY",
+      "DESCRIPTION:Rappel",
+      "TRIGGER:-PT15M",
+      "END:VALARM",
+      "END:VEVENT"
+    ];
+    return lines.map(foldLine).join("\r\n");
+  }
+
+  function generateICS(taches, filename) {
+    var events = taches.filter(function (t) { return !!t.echeance; }).map(buildVEvent);
+    if (events.length === 0) {
+      alert("Aucune tâche avec échéance à exporter.");
+      return;
+    }
+    var body = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//GestionnaireTaches//FR",
+      "CALSCALE:GREGORIAN"
+    ].join("\r\n") + "\r\n" + events.join("\r\n") + "\r\nEND:VCALENDAR\r\n";
+
+    var blob = new Blob([body], { type: "text/calendar" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exporterUneTacheOutlook(id) {
+    var t = findBy(state.taches, id);
+    if (!t) return;
+    if (!t.echeance) {
+      alert("Cette tâche n'a pas d'échéance à exporter.");
+      return;
+    }
+    generateICS([t], formatTicketId(t.numero) + ".ics");
+  }
+
+  function exporterToutOutlook() {
+    var actives = state.taches.filter(function (t) { return t.statut !== "Terminé" && t.echeance; });
+    generateICS(actives, "echeances-outlook-" + todayISO() + ".ics");
+  }
+
+  // ---- Modal handling ----
+  var RECURRENCES = [
+    ["aucune", "Aucune"],
+    ["quotidienne", "Quotidienne"],
+    ["hebdomadaire", "Hebdomadaire"],
+    ["mensuelle", "Mensuelle"]
+  ];
+
+  function recurrenceLabel(id) {
+    var found = RECURRENCES.find(function (r) { return r[0] === id; });
+    return found ? found[1] : id;
+  }
+
+  function heureActuelleArrondie() {
+    var d = new Date();
+    var m = d.getMinutes();
+    var arrondi = Math.ceil(m / 15) * 15;
+    if (arrondi === 60) { d.setHours(d.getHours() + 1); arrondi = 0; }
+    return pad(d.getHours()) + ":" + pad(arrondi);
+  }
+
+  function emptyDraft() {
+    return {
+      id: null, titre: "", description: "", type: "perso", assigne: "",
+      priorite: "moyenne", echeance: todayISO(), echeanceHeure: heureActuelleArrondie(),
+      statut: "À faire", notes: [], snTicket: "", recurrence: "aucune"
+    };
+  }
+
+  function openModalNew() {
+    draft = emptyDraft();
+    fillModalOptions();
+    document.getElementById("modalEyebrow").textContent = "NOUVEAU TICKET";
+    document.getElementById("modalTitle").textContent = "Créer une tâche";
+    document.getElementById("btnEnregistrer").textContent = "Créer le ticket";
+    populateForm();
+    document.getElementById("fErreur").style.display = "none";
+    document.getElementById("overlay").classList.add("open");
+    document.getElementById("fTitre").focus();
+  }
+
+  function openModalNewAvecDate(dateStr) {
+    openModalNew();
+    if (dateStr) {
+      draft.echeance = dateStr;
+      document.getElementById("fEcheance").value = dateStr;
+    }
+  }
+
+  function openModalEdit(id) {
+    var t = findBy(state.taches, id);
+    if (!t) return;
+    draft = Object.assign({}, t);
+    fillModalOptions();
+    document.getElementById("modalEyebrow").textContent = formatTicketId(t.numero);
+    document.getElementById("modalTitle").textContent = "Modifier la tâche";
+    document.getElementById("btnEnregistrer").textContent = "Enregistrer";
+    populateForm();
+    document.getElementById("fErreur").style.display = "none";
+    document.getElementById("overlay").classList.add("open");
+  }
+
+  function fillModalOptions() {
+    fillSelect(document.getElementById("fType"), TYPES.map(function (t) { return [t.id, t.label]; }));
+    fillSelect(document.getElementById("fPriorite"), PRIORITES.map(function (p) { return [p.id, p.label]; }));
+    fillSelect(document.getElementById("fStatut"), STATUTS.map(function (s) { return [s, s]; }));
+    fillSelect(document.getElementById("fRecurrence"), RECURRENCES);
+  }
+
+  function populateForm() {
+    document.getElementById("fTitre").value = draft.titre;
+    document.getElementById("fDescription").value = draft.description;
+    document.getElementById("fType").value = draft.type;
+    document.getElementById("fPriorite").value = draft.priorite;
+    document.getElementById("fAssigne").value = draft.assigne;
+    document.getElementById("fEcheance").value = draft.echeance || "";
+    document.getElementById("fEcheanceHeure").value = draft.echeanceHeure || "";
+    document.getElementById("fStatut").value = draft.statut;
+    document.getElementById("fSnTicket").value = draft.snTicket || "";
+    document.getElementById("fRecurrence").value = draft.recurrence || "aucune";
+    updateAssigneVisibility();
+
+    var notesSection = document.getElementById("notesSection");
+    if (draft.id) {
+      notesSection.style.display = "block";
+      document.getElementById("fNouvelleNote").value = "";
+      renderNotesList();
+    } else {
+      notesSection.style.display = "none";
+    }
+  }
+
+  function renderNotesList() {
+    var t = findBy(state.taches, draft.id);
+    var container = document.getElementById("notesList");
+    var notes = (t && t.notes) || [];
+    if (notes.length === 0) {
+      container.innerHTML = '<div class="notes-empty">Aucune note pour l\'instant.</div>';
+      return;
+    }
+    var tri = notes.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+    container.innerHTML = tri.map(function (n) {
+      var d = new Date(n.date);
+      return '<div class="note-item"><div class="note-date mono">' +
+        d.toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) +
+        "</div>" + escapeHtml(n.texte) + "</div>";
+    }).join("");
+  }
+
+  function ajouterNote() {
+    if (!draft.id) return;
+    var input = document.getElementById("fNouvelleNote");
+    var texte = input.value.trim();
+    if (!texte) return;
+    var t = findBy(state.taches, draft.id);
+    if (!t) return;
+    if (!t.notes) t.notes = [];
+    t.notes.push({ id: uid(), texte: texte, date: new Date().toISOString() });
+    input.value = "";
+    renderNotesList();
+    renderList();
+    save();
+  }
+
+  function updateAssigneVisibility() {
+    var isEquipe = document.getElementById("fType").value === "equipe";
+    document.getElementById("assigneWrap").style.display = isEquipe ? "block" : "none";
+  }
+
+  function closeModal() {
+    document.getElementById("overlay").classList.remove("open");
+  }
+
+  function nextDueDate(dateStr, recurrence) {
+    var d = new Date(dateStr + "T00:00:00");
+    if (recurrence === "quotidienne") d.setDate(d.getDate() + 1);
+    else if (recurrence === "hebdomadaire") d.setDate(d.getDate() + 7);
+    else if (recurrence === "mensuelle") d.setMonth(d.getMonth() + 1);
+    else return null;
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+
+  function creerOccurrenceSuivante(t) {
+    if (!t.recurrence || t.recurrence === "aucune" || !t.echeance) return;
+    var nouvelleEcheance = nextDueDate(t.echeance, t.recurrence);
+    if (!nouvelleEcheance) return;
+    state.taches.push({
+      id: uid(),
+      numero: state.nextNum,
+      titre: t.titre,
+      description: t.description,
+      type: t.type,
+      assigne: t.assigne,
+      priorite: t.priorite,
+      echeance: nouvelleEcheance,
+      echeanceHeure: t.echeanceHeure || "",
+      statut: "À faire",
+      notes: [],
+      snTicket: t.snTicket,
+      recurrence: t.recurrence,
+      creeLe: todayISO(),
+      termineLe: null
+    });
+    state.nextNum += 1;
+  }
+
+  function saveDraft() {
+    var titre = document.getElementById("fTitre").value.trim();
+    if (!titre) {
+      var err = document.getElementById("fErreur");
+      err.textContent = "Un titre est nécessaire pour créer le ticket.";
+      err.style.display = "block";
+      return;
+    }
+    draft.titre = titre;
+    draft.description = document.getElementById("fDescription").value;
+    draft.type = document.getElementById("fType").value;
+    draft.priorite = document.getElementById("fPriorite").value;
+    draft.assigne = document.getElementById("fAssigne").value;
+    draft.echeance = document.getElementById("fEcheance").value;
+    draft.echeanceHeure = document.getElementById("fEcheanceHeure").value;
+    draft.statut = document.getElementById("fStatut").value;
+    draft.snTicket = document.getElementById("fSnTicket").value;
+    draft.recurrence = document.getElementById("fRecurrence").value;
+
+    var devientTermine = false;
+
+    if (draft.id) {
+      var idx = state.taches.findIndex(function (t) { return t.id === draft.id; });
+      if (idx !== -1) {
+        var prevStatut = state.taches[idx].statut;
+        devientTermine = draft.statut === "Terminé" && prevStatut !== "Terminé";
+        draft.termineLe = draft.statut === "Terminé"
+          ? (prevStatut === "Terminé" ? state.taches[idx].termineLe : todayISO())
+          : null;
+        state.taches[idx] = draft;
+      }
+    } else {
+      draft.id = uid();
+      draft.numero = state.nextNum;
+      draft.creeLe = todayISO();
+      draft.termineLe = draft.statut === "Terminé" ? todayISO() : null;
+      devientTermine = draft.statut === "Terminé";
+      state.taches.push(draft);
+      state.nextNum += 1;
+    }
+
+    if (devientTermine) creerOccurrenceSuivante(draft);
+
+    closeModal();
+    renderAll();
+  }
+
+  function deleteTache(id) {
+    var t = findBy(state.taches, id);
+    if (!t) return;
+    var confirmation = confirm(
+      "Supprimer " + formatTicketId(t.numero) + " – \"" + t.titre + "\" ?\n\nCette action est irréversible."
+    );
+    if (!confirmation) return;
+    state.taches = state.taches.filter(function (x) { return x.id !== id; });
+    renderAll();
+  }
+
+  function changeStatut(id, statut) {
+    var t = findBy(state.taches, id);
+    if (!t) return;
+    var prevStatut = t.statut;
+    t.statut = statut;
+    t.termineLe = statut === "Terminé" ? todayISO() : null;
+    if (statut === "Terminé" && prevStatut !== "Terminé") creerOccurrenceSuivante(t);
+    renderAll();
+  }
+
+  function cyclerPriorite(id) {
+    var t = findBy(state.taches, id);
+    if (!t) return;
+    var ordre = ["haute", "moyenne", "basse"];
+    var idx = ordre.indexOf(t.priorite);
+    t.priorite = ordre[(idx + 1) % ordre.length];
+    renderAll();
+  }
+
+  // ---- Event wiring ----
+  document.getElementById("btnNouveau").addEventListener("click", openModalNew);
+  document.getElementById("btnAnnuler").addEventListener("click", closeModal);
+  document.getElementById("btnEnregistrer").addEventListener("click", saveDraft);
+  document.getElementById("alertBanner").addEventListener("click", function (e) {
+    var el = e.target.closest('[data-action="filtrer"]');
+    if (!el) return;
+    filtres.echeance = el.getAttribute("data-cible");
+    renderList();
+    document.getElementById("liste").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  document.getElementById("overlay").addEventListener("click", function (e) {
+    if (e.target.id === "overlay") closeModal();
+  });
+  document.getElementById("fType").addEventListener("change", updateAssigneVisibility);
+
+  document.getElementById("btnAjouterNote").addEventListener("click", ajouterNote);
+  document.getElementById("fNouvelleNote").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); ajouterNote(); }
+  });
+
+  document.querySelectorAll(".view-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      currentView = btn.getAttribute("data-view");
+      document.querySelectorAll(".view-btn").forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      sauverPrefs();
+      renderList();
+    });
+  });
+
+  document.getElementById("recherche").addEventListener("input", function (e) {
+    filtres.recherche = e.target.value; renderList();
+  });
+  document.getElementById("filtreType").addEventListener("change", function (e) {
+    filtres.type = e.target.value; sauverPrefs(); renderList();
+  });
+  document.getElementById("filtreStatut").addEventListener("change", function (e) {
+    filtres.statut = e.target.value; sauverPrefs(); renderList();
+  });
+  document.getElementById("filtrePriorite").addEventListener("change", function (e) {
+    filtres.priorite = e.target.value; sauverPrefs(); renderList();
+  });
+  document.getElementById("filtreTri").addEventListener("change", function (e) {
+    filtres.tri = e.target.value; sauverPrefs(); renderList();
+  });
+  document.getElementById("filtreEcheanceChip").addEventListener("click", function (e) {
+    if (e.target.closest("[data-clear]")) {
+      filtres.echeance = "tous";
+      renderList();
+    }
+  });
+
+  document.getElementById("liste").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    var action = btn.getAttribute("data-action");
+    var id = btn.getAttribute("data-id");
+    if (action === "edit") openModalEdit(id);
+    if (action === "delete") deleteTache(id);
+    if (action === "outlook") exporterUneTacheOutlook(id);
+    if (action === "cal-prev") { calendrierMois.setMonth(calendrierMois.getMonth() - 1); renderList(); }
+    if (action === "cal-next") { calendrierMois.setMonth(calendrierMois.getMonth() + 1); renderList(); }
+    if (action === "cal-today") { calendrierMois = new Date(); renderList(); }
+    if (action === "cal-new-day") openModalNewAvecDate(btn.getAttribute("data-date"));
+    if (action === "cal-more") ouvrirJourDetail(btn.getAttribute("data-date"));
+    if (action === "cycle-priorite") cyclerPriorite(id);
+  });
+  document.getElementById("liste").addEventListener("change", function (e) {
+    var el = e.target.closest('[data-action="status"]');
+    if (!el) return;
+    changeStatut(el.getAttribute("data-id"), el.value);
+  });
+
+  document.getElementById("jourDetailListe").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    var action = btn.getAttribute("data-action");
+    var id = btn.getAttribute("data-id");
+    if (action === "edit") openModalEdit(id);
+    if (action === "delete") deleteTache(id);
+    if (action === "outlook") exporterUneTacheOutlook(id);
+    if (action === "cycle-priorite") cyclerPriorite(id);
+  });
+  document.getElementById("jourDetailListe").addEventListener("change", function (e) {
+    var el = e.target.closest('[data-action="status"]');
+    if (!el) return;
+    changeStatut(el.getAttribute("data-id"), el.value);
+  });
+  document.getElementById("btnFermerJourDetail").addEventListener("click", fermerJourDetail);
+  document.getElementById("btnNouveauJourDetail").addEventListener("click", function () {
+    var dateStr = jourDetailDateActuelle;
+    fermerJourDetail();
+    openModalNewAvecDate(dateStr);
+  });
+  document.getElementById("jourDetailOverlay").addEventListener("click", function (e) {
+    if (e.target.id === "jourDetailOverlay") fermerJourDetail();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      closeModal(); fermerRapport(); fermerImportSn(); fermerJourDetail(); fermerGhSync();
+      document.getElementById("outilsMenu").classList.remove("open");
+    }
+  });
+
+  // ---- Export / Import ----
+  function pad(n) { return String(n).padStart(2, "0"); }
+
+  function exportData() {
+    var d = new Date();
+    var stamp = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+      "_" + pad(d.getHours()) + "h" + pad(d.getMinutes());
+    var payload = {
+      exporteLe: new Date().toISOString(),
+      version: 1,
+      taches: state.taches,
+      nextNum: state.nextNum
+    };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "taches-export-" + stamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setImportInfo("Export téléchargé le " + new Date().toLocaleString("fr-FR"));
+  }
+
+  function setImportInfo(text) {
+    document.getElementById("importInfo").textContent = text;
+  }
+
+  function importData(file) {
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var parsed;
+      try {
+        parsed = JSON.parse(e.target.result);
+      } catch (err) {
+        alert("Ce fichier n'est pas un export valide (JSON illisible).");
+        return;
+      }
+      if (!parsed || !Array.isArray(parsed.taches)) {
+        alert("Ce fichier ne contient pas de tâches reconnues.");
+        return;
+      }
+      var remplacer = confirm(
+        "Importer " + parsed.taches.length + " tâche(s) va REMPLACER les tâches actuellement affichées.\n\n" +
+        "Clique OK pour remplacer, ou Annuler pour ne rien faire."
+      );
+      if (!remplacer) return;
+      state.taches = parsed.taches;
+      state.nextNum = parsed.nextNum || (parsed.taches.reduce(function (max, t) {
+        return Math.max(max, (t.numero || 0) + 1);
+      }, 1));
+      renderAll();
+      setImportInfo("Import réussi le " + new Date().toLocaleString("fr-FR") + " (" + parsed.taches.length + " tâche(s))");
+    };
+    reader.readAsText(file);
+  }
+
+  document.getElementById("btnExporter").addEventListener("click", exportData);
+  document.getElementById("btnImporter").addEventListener("click", function () {
+    document.getElementById("fileImporter").click();
+  });
+  document.getElementById("fileImporter").addEventListener("change", function (e) {
+    var file = e.target.files[0];
+    if (file) importData(file);
+    e.target.value = "";
+  });
+
+  document.getElementById("btnNotifs").addEventListener("click", activerNotifications);
+
+  document.getElementById("btnOutilsToggle").addEventListener("click", function (e) {
+    e.stopPropagation();
+    document.getElementById("outilsMenu").classList.toggle("open");
+  });
+  document.getElementById("outilsMenu").addEventListener("click", function (e) {
+    if (e.target.classList.contains("dropdown-item")) {
+      document.getElementById("outilsMenu").classList.remove("open");
+    }
+  });
+  document.addEventListener("click", function (e) {
+    if (!document.getElementById("outilsDropdown").contains(e.target)) {
+      document.getElementById("outilsMenu").classList.remove("open");
+    }
+  });
+
+  document.getElementById("btnOutlookAll").addEventListener("click", exporterToutOutlook);
+  document.getElementById("btnRapport").addEventListener("click", ouvrirRapport);
+  document.getElementById("btnFermerRapport").addEventListener("click", fermerRapport);
+  document.getElementById("btnCopierRapport").addEventListener("click", copierRapport);
+  document.getElementById("btnTelechargerRapport").addEventListener("click", telechargerRapport);
+  document.getElementById("rapportOverlay").addEventListener("click", function (e) {
+    if (e.target.id === "rapportOverlay") fermerRapport();
+  });
+
+  document.getElementById("btnSnImport").addEventListener("click", ouvrirImportSn);
+  document.getElementById("btnFermerSn").addEventListener("click", fermerImportSn);
+  document.getElementById("btnLancerImportSn").addEventListener("click", lancerImportSn);
+  document.getElementById("snOverlay").addEventListener("click", function (e) {
+    if (e.target.id === "snOverlay") fermerImportSn();
+  });
+
+  document.getElementById("btnGhSync").addEventListener("click", ouvrirGhSync);
+  document.getElementById("btnGhSyncNow").addEventListener("click", synchroniserMaintenant);
+  document.getElementById("btnFermerGh").addEventListener("click", fermerGhSync);
+  document.getElementById("btnLancerGhSync").addEventListener("click", lancerGhSync);
+  document.getElementById("ghSyncOverlay").addEventListener("click", function (e) {
+    if (e.target.id === "ghSyncOverlay") fermerGhSync();
+  });
+
+  // ---- Init ----
+  load();
+  chargerPrefs();
+  renderFilters();
+  document.getElementById("filtreType").value = filtres.type;
+  document.getElementById("filtreStatut").value = filtres.statut;
+  document.getElementById("filtrePriorite").value = filtres.priorite;
+  document.getElementById("filtreTri").value = filtres.tri;
+  document.querySelectorAll(".view-btn").forEach(function (b) {
+    b.classList.toggle("active", b.getAttribute("data-view") === currentView);
+  });
+  renderAll();
+  initGhSync();
+
+  if ("Notification" in window && Notification.permission === "granted") {
+    var btnNotifsInit = document.getElementById("btnNotifs");
+    btnNotifsInit.classList.add("actif");
+    btnNotifsInit.title = "Alertes activées";
+    checkNotifications();
+  }
+  setInterval(checkNotifications, 60000);
+})();
+</script>
+</body>
+</html>
