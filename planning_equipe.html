@@ -187,6 +187,7 @@
   .ghnav-link:hover { background: #f0f4f8; }
   .ghnav-link.active { background: #e8f0fe; color: #1a56db; }
   .ghnav-link .ghnav-icon { font-size: 15px; width: 20px; text-align: center; }
+  header { padding-left: 60px; }
 </style>
 <button class="ghnav-btn" id="ghnavBtn" title="Menu de navigation">☰</button>
 <div class="ghnav-overlay" id="ghnavOverlay"></div>
@@ -212,7 +213,7 @@
     btn.addEventListener('click', openNav);
     close.addEventListener('click', closeNav);
     overlay.addEventListener('click', closeNav);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNav(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('pin-overlay').style.display.includes('flex')) closeNav(); });
   })();
 </script>
 <!-- ===== Fin navigation ===== -->
@@ -322,7 +323,7 @@ function norm(v) {
 
 const TEAM = [
   { nom:'BARBAUT',   prenom:'Tanguy',     equipe:1,
-    jours:[{},{17:'RTT',18:'RTT',19:'RTT',20:'RTT',21:'RTT'},{}] },
+    jours:[{},{17:'RTT',18:'RTT',19:'RTT',20:'RTT',21:'RTT'},{14:'RTT',15:'RTT',16:'RTT',17:'RTT',18:'RTT',21:'CP',22:'CP',23:'CP',24:'CP',25:'CP'}] },
   { nom:'GERIN',     prenom:'Hervé',      equipe:1,
     jours:[{6:'CP',7:'CP',8:'CP',9:'CP',10:'CP',13:'CP',15:'RTT',16:'RTT',17:'RTT',31:'TLT'},{},{}] },
   { nom:'MARABEUF',  prenom:'Yannick',    equipe:1,
@@ -334,7 +335,7 @@ const TEAM = [
   { nom:'CHARBELET', prenom:'Julien',     equipe:2,
     jours:[{1:'TLT',2:'RTT',3:'RTT',6:'TLT',16:'TLT',20:'TLT',23:'CP',24:'CP',27:'CP',28:'CP',29:'CP',30:'CP',31:'CP'},{3:'CP',4:'CP',5:'CP',6:'CP',7:'CP',10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',21:'TLT'},{}] },
   { nom:'BONNETON',  prenom:'Hugo',       equipe:2,
-    jours:[{},{10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',17:'CP',18:'CP',19:'CP',20:'CP',21:'CP',27:'CP',28:'CP'},{}] },
+    jours:[{},{10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',17:'CP',18:'CP',19:'CP',20:'CP',21:'CP',25:'CP',26:'CP',27:'CP',28:'CP'},{}] },
   { nom:'RODRIGO',   prenom:'Steven',     equipe:2,
     jours:[{},{7:'CP'},{}] }
 ];
