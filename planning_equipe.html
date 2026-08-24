@@ -220,8 +220,8 @@
 
 <header>
   <div>
-    <h1>Planning équipe — <span>Juil–Sept 2026</span></h1>
-    <div class="subtitle">LIP IT · 8 collaborateurs · 2 équipes</div>
+    <h1>Planning équipe — <span>Août–Oct 2026</span></h1>
+    <div class="subtitle">LIP IT · 7 collaborateurs · 2 équipes</div>
   </div>
   <div class="legend" id="legend-box">
     <span class="legend-item"><span class="pill pill-tlt">TLT</span> Télétravail</span>
@@ -277,9 +277,9 @@
 <div class="alerts-panel" id="alerts-panel"></div>
 
 <div class="toolbar">
-  <button class="tab" onclick="switchMonth(0)">Juillet 2026</button>
-  <button class="tab" onclick="switchMonth(1)">Août 2026</button>
-  <button class="tab" onclick="switchMonth(2)">Septembre 2026</button>
+  <button class="tab" onclick="switchMonth(0)">Août 2026</button>
+  <button class="tab" onclick="switchMonth(1)">Septembre 2026</button>
+  <button class="tab" onclick="switchMonth(2)">Octobre 2026</button>
   <div class="vsep" style="height:28px;margin:0 4px;"></div>
   <div class="view-toggle">
     <button class="view-btn active" id="view-month" onclick="switchView('month')">Mois</button>
@@ -305,9 +305,9 @@
 
 <script>
 const MONTHS = [
-  { label:'Juillet 2026',   days:31, year:2026, month:7,  dow: d=>((d-1+2)%7)+1 },
   { label:'Août 2026',      days:31, year:2026, month:8,  dow: d=>((d-1+5)%7)+1 },
-  { label:'Septembre 2026', days:30, year:2026, month:9,  dow: d=>((d-1+1)%7)+1 }
+  { label:'Septembre 2026', days:30, year:2026, month:9,  dow: d=>((d-1+1)%7)+1 },
+  { label:'Octobre 2026',   days:31, year:2026, month:10, dow: d=>((d-1+4)%7)+1 }
 ];
 
 // Normalisation des codes Nibelis → codes internes
@@ -323,21 +323,19 @@ function norm(v) {
 
 const TEAM = [
   { nom:'BARBAUT',   prenom:'Tanguy',     equipe:1,
-    jours:[{},{17:'RTT',18:'RTT',19:'RTT',20:'RTT',21:'RTT'},{14:'RTT',15:'RTT',16:'RTT',17:'RTT',18:'RTT',21:'CP',22:'CP',23:'CP',24:'CP',25:'CP'}] },
+    jours:[{17:'RTT',18:'RTT',19:'RTT',20:'RTT',21:'RTT'},{14:'RTT',15:'RTT',16:'RTT',17:'RTT',18:'RTT',21:'CP',22:'CP',23:'CP',24:'CP',25:'CP'},{}] },
   { nom:'GERIN',     prenom:'Hervé',      equipe:1,
-    jours:[{6:'CP',7:'CP',8:'CP',9:'CP',10:'CP',13:'CP',15:'RTT',16:'RTT',17:'RTT',31:'TLT'},{},{}] },
+    jours:[{},{4:'RTT',11:'RTT'},{}] },
   { nom:'MARABEUF',  prenom:'Yannick',    equipe:1,
-    jours:[{3:'TLT',8:'TLT',9:'CP',10:'CP',13:'CP',15:'CP',17:'RTT',22:'TLT',31:'TLT'},{3:'TLT',14:'TLT',17:'TLT',28:'TLT'},{16:'RTT',17:'RTT',18:'CP',21:'CP',22:'RTT',23:'RTT'}] },
-  { nom:'THOMAS',    prenom:'Lucas',      equipe:1,
-    jours:[{17:'CSS'},{10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',17:'CP',18:'CP',19:'CP',20:'CP',21:'CP',24:'CP',25:'CP',26:'CP',27:'CP',28:'CP'},{}] },
+    jours:[{3:'TLT',14:'TLT',17:'TLT',28:'TLT'},{16:'RTT',17:'RTT',18:'CP',21:'CP',22:'RTT',23:'RTT'},{}] },
   { nom:'ROBERT',    prenom:'Christophe', equipe:2,
-    jours:[{2:'TLT',7:'TLT',9:'CP',10:'CP',13:'CP',15:'CP',16:'RTT',17:'TLT',22:'CP',23:'TLT',24:'TLT',27:'RTT',28:'RTT',29:'TLT'},{5:'TLT',12:'TLT',19:'TLT',26:'TLT'},{3:'TLT',4:'CP',7:'CP',8:'TLT'}] },
+    jours:[{5:'TLT',12:'TLT',14:'RTT',19:'TLT',26:'TLT',31:'CP'},{3:'TLT',4:'CP',7:'CP',8:'TLT'},{}] },
   { nom:'CHARBELET', prenom:'Julien',     equipe:2,
-    jours:[{1:'TLT',2:'RTT',3:'RTT',6:'TLT',16:'TLT',20:'TLT',23:'CP',24:'CP',27:'CP',28:'CP',29:'CP',30:'CP',31:'CP'},{3:'CP',4:'CP',5:'CP',6:'CP',7:'CP',10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',21:'TLT'},{}] },
+    jours:[{3:'CP',4:'CP',5:'CP',6:'CP',7:'CP',10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',21:'TLT',27:'TLT'},{},{}] },
   { nom:'BONNETON',  prenom:'Hugo',       equipe:2,
-    jours:[{},{10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',17:'CP',18:'CP',19:'CP',20:'CP',21:'CP',25:'CP',26:'CP',27:'CP',28:'CP'},{}] },
+    jours:[{10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',17:'CP',18:'CP',19:'CP',20:'CP',21:'CP',24:'CSS',25:'CP',26:'CP',27:'CP',28:'CP'},{},{}] },
   { nom:'RODRIGO',   prenom:'Steven',     equipe:2,
-    jours:[{},{7:'CP'},{}] }
+    jours:[{7:'CP'},{},{}] }
 ];
 
 const TEAM_EQ1 = TEAM.filter(p=>p.equipe===1);
@@ -551,7 +549,7 @@ function buildTable(){
   // Body
   let bh='';
   const groups=[
-    {label:'🟣 Équipe 1 — Tanguy · Hervé · Yannick · Lucas', cls:'g1', members:TEAM_EQ1},
+    {label:'🟣 Équipe 1 — Tanguy · Hervé · Yannick', cls:'g1', members:TEAM_EQ1},
     {label:'🔵 Équipe 2 — Christophe · Julien · Hugo · Steven',       cls:'g2', members:TEAM_EQ2}
   ];
   for(const grp of groups){
