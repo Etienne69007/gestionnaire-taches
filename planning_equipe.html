@@ -161,6 +161,9 @@
 </head>
 <body>
 
+
+
+
 <!-- ===== Navigation (menu burger) ===== -->
 <style>
   .ghnav-btn { position: fixed; top: 18px; left: 18px; z-index: 600; width: 42px; height: 42px;
@@ -168,22 +171,17 @@
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     box-shadow: 0 2px 8px rgba(26,35,50,0.25); }
   .ghnav-btn:hover { background: #2a3648; }
-  .ghnav-overlay { position: fixed; inset: 0; background: rgba(26,35,50,0.35); z-index: 599;
-    display: none; }
+  .ghnav-overlay { position: fixed; inset: 0; background: rgba(26,35,50,0.35); z-index: 599; display: none; }
   .ghnav-overlay.open { display: block; }
   .ghnav-drawer { position: fixed; top: 0; left: 0; height: 100%; width: 260px;
     background: #FFFFFF; z-index: 601; box-shadow: 2px 0 20px rgba(26,35,50,0.18);
     transform: translateX(-100%); transition: transform 0.2s ease; display: flex; flex-direction: column; }
   .ghnav-drawer.open { transform: translateX(0); }
-  .ghnav-head { padding: 18px 16px 14px; border-bottom: 1px solid #eef1f5; display: flex;
-    align-items: center; justify-content: space-between; }
-  .ghnav-title { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: #6b7c93;
-    text-transform: uppercase; }
-  .ghnav-close { background: none; border: none; font-size: 18px; color: #9aa8bb; cursor: pointer;
-    padding: 2px 6px; }
+  .ghnav-head { padding: 18px 16px 14px; border-bottom: 1px solid #eef1f5; display: flex; align-items: center; justify-content: space-between; }
+  .ghnav-title { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; color: #6b7c93; text-transform: uppercase; }
+  .ghnav-close { background: none; border: none; font-size: 18px; color: #9aa8bb; cursor: pointer; padding: 2px 6px; }
   .ghnav-list { padding: 10px; display: flex; flex-direction: column; gap: 4px; }
-  .ghnav-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 6px;
-    color: #1a2332; text-decoration: none; font-size: 13.5px; font-weight: 600; }
+  .ghnav-link { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 6px; color: #1a2332; text-decoration: none; font-size: 13.5px; font-weight: 600; }
   .ghnav-link:hover { background: #f0f4f8; }
   .ghnav-link.active { background: #e8f0fe; color: #1a56db; }
   .ghnav-link .ghnav-icon { font-size: 15px; width: 20px; text-align: center; }
@@ -327,7 +325,7 @@ const TEAM = [
   { nom:'GERIN',     prenom:'Hervé',      equipe:1,
     jours:[{},{4:'RTT',11:'RTT'},{}] },
   { nom:'MARABEUF',  prenom:'Yannick',    equipe:1,
-    jours:[{3:'TLT',14:'TLT',17:'TLT',28:'TLT'},{16:'RTT',17:'RTT',18:'CP',21:'CP',22:'RTT',23:'RTT'},{}] },
+    jours:[{3:'TLT',14:'TLT',17:'TLT',28:'TLT',31:'TLT'},{16:'RTT',17:'RTT',18:'CP',21:'CP',22:'RTT',23:'RTT'},{}] },
   { nom:'ROBERT',    prenom:'Christophe', equipe:2,
     jours:[{5:'TLT',12:'TLT',14:'RTT',19:'TLT',26:'TLT',31:'CP'},{3:'TLT',4:'CP',7:'CP',8:'TLT'},{}] },
   { nom:'CHARBELET', prenom:'Julien',     equipe:2,
