@@ -14,6 +14,7 @@
     --rtt-bg: #fef3c7; --rtt-color: #92400e;
     --cp-bg:  #d1fae5; --cp-color:  #065f46;
     --halftlt-bg: #ede9fe; --halftlt-color: #5b21b6;
+    --halfrtt-bg: #fef9c3; --halfrtt-color: #713f12;
     --css-bg: #fce7f3; --css-color: #9d174d;
     --week-bg: #f5f8ff;
     --danger: #dc2626; --danger-light: #fee2e2;
@@ -36,6 +37,7 @@
   .pill-rtt     { background: var(--rtt-bg);     color: var(--rtt-color); }
   .pill-cp      { background: var(--cp-bg);      color: var(--cp-color); }
   .pill-halftlt { background: var(--halftlt-bg); color: var(--halftlt-color); }
+  .pill-halfrtt { background: var(--halfrtt-bg); color: var(--halfrtt-color); }
   .pill-css     { background: var(--css-bg);     color: var(--css-color); }
 
   /* ── Mode switch ── */
@@ -329,7 +331,7 @@ const TEAM = [
   { nom:'ROBERT',    prenom:'Christophe', equipe:2,
     jours:[{5:'TLT',12:'TLT',14:'RTT',19:'TLT',26:'TLT',31:'CP'},{3:'TLT',4:'CP',7:'CP',8:'TLT'},{}] },
   { nom:'CHARBELET', prenom:'Julien',     equipe:2,
-    jours:[{3:'CP',4:'CP',5:'CP',6:'CP',7:'CP',10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',21:'TLT',27:'TLT'},{},{}] },
+    jours:[{3:'CP',4:'CP',5:'CP',6:'CP',7:'CP',10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',21:'TLT',27:'1/2 RTT',31:'1/2 RTT'},{4:'TLT'},{}] },
   { nom:'BONNETON',  prenom:'Hugo',       equipe:2,
     jours:[{10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',17:'CP',18:'CP',19:'CP',20:'CP',21:'CP',24:'CSS',25:'CP',26:'CP',27:'CP',28:'CP',31:'CSS'},{},{}] },
   { nom:'RODRIGO',   prenom:'Steven',     equipe:2,
@@ -438,12 +440,12 @@ function cellDisplay(code, isWeekend) {
 }
 function pillHtml(code) {
   if (!code) return '';
-  const map={'TLT':'tlt','RTT':'rtt','CP':'cp','1/2 TLT':'halftlt','CSS':'css'};
-  const cls=map[code]||''; const lbl=code==='1/2 TLT'?'½ TLT':code;
+  const map={'TLT':'tlt','RTT':'rtt','CP':'cp','1/2 TLT':'halftlt','CSS':'css','1/2 RTT':'halfrtt'};
+  const cls=map[code]||''; const lbl=code==='1/2 TLT'?'½ TLT':code==='1/2 RTT'?'½ RTT':code;
   return cls?`<span class="pill pill-${cls}">${lbl}</span>`:`<span class="pill">${code}</span>`;
 }
 
-function isAbsent(c) { return c==='RTT'||c==='CP'||c==='CSS'; }
+function isAbsent(c) { return c==='RTT'||c==='CP'||c==='CSS'||c==='1/2 RTT'; }
 function isRemote(c) { return c==='TLT'||c==='1/2 TLT'; }
 function isPresent(c){ return !c; }
 
