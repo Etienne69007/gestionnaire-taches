@@ -112,7 +112,7 @@
   th.col-tlt  { min-width: 44px; font-size: 0.65rem; border-right: 1px solid var(--border); }
   th.col-day  { min-width: 34px; cursor: pointer; transition: background 0.12s; }
   th.col-day:hover { background: var(--accent-light); color: var(--accent); }
-  th.col-day.weekend { color: #c4cdd9; }
+  th.col-day.weekend { color: #8a97a8; background: #dde3ea; }
   th.col-day.cur-week { background: var(--week-bg); }
   th.col-day.today-col { background: var(--accent) !important; color: #fff !important; }
   th.col-day.selected-col { background: var(--accent-light); color: var(--accent); }
@@ -123,7 +123,7 @@
   td.col-name .prenom { font-weight: 400; color: var(--muted); font-size: 0.74rem; display: block; }
   td.col-tlt { font-size: 0.71rem; font-weight: 600; border-right: 1px solid var(--border); }
   tbody tr:hover td.col-name { background: #fafbfd; }
-  td.weekend { background: #f8fafc; }
+  td.weekend { background: #dde3ea; }
   td.cur-week { background: var(--week-bg); }
   td.today-col { background: #eff6ff !important; }
   td.selected-col { background: var(--accent-light) !important; }
@@ -223,7 +223,7 @@
 
 <header>
   <div>
-    <h1>Planning équipe — <span>Août–Oct 2026</span></h1>
+    <h1>Planning équipe — <span>Sept–Nov 2026</span></h1>
     <div class="subtitle">LIP IT · 8 collaborateurs · 2 équipes</div>
   </div>
   <div class="legend" id="legend-box">
@@ -281,9 +281,9 @@
 <div class="alerts-panel" id="alerts-panel"></div>
 
 <div class="toolbar">
-  <button class="tab" onclick="switchMonth(0)">Août 2026</button>
-  <button class="tab" onclick="switchMonth(1)">Septembre 2026</button>
-  <button class="tab" onclick="switchMonth(2)">Octobre 2026</button>
+  <button class="tab" onclick="switchMonth(0)">Septembre 2026</button>
+  <button class="tab" onclick="switchMonth(1)">Octobre 2026</button>
+  <button class="tab" onclick="switchMonth(2)">Novembre 2026</button>
   <div class="vsep" style="height:28px;margin:0 4px;"></div>
   <div class="view-toggle">
     <button class="view-btn active" id="view-month" onclick="switchView('month')">Mois</button>
@@ -309,9 +309,9 @@
 
 <script>
 const MONTHS = [
-  { label:'Août 2026',      days:31, year:2026, month:8,  dow: d=>((d-1+5)%7)+1 },
   { label:'Septembre 2026', days:30, year:2026, month:9,  dow: d=>((d-1+1)%7)+1 },
-  { label:'Octobre 2026',   days:31, year:2026, month:10, dow: d=>((d-1+3)%7)+1 }
+  { label:'Octobre 2026',   days:31, year:2026, month:10, dow: d=>((d-1+3)%7)+1 },
+  { label:'Novembre 2026',  days:30, year:2026, month:11, dow: d=>((d-1+6)%7)+1 }
 ];
 
 // Normalisation des codes Nibelis → codes internes
@@ -327,28 +327,48 @@ function norm(v) {
 
 const TEAM = [
   { nom:'BARBAUT',   prenom:'Tanguy',     equipe:1,
-    jours:[{17:'RTT',18:'RTT',19:'RTT',20:'RTT',21:'RTT'},{14:'RTT',15:'RTT',16:'RTT',17:'RTT',18:'RTT',21:'CP',22:'CP',23:'CP',24:'CP',25:'CP'},{}] },
+    jours:[
+      {14:'RTT',15:'RTT',16:'RTT',17:'RTT',18:'RTT',21:'CP',22:'CP',23:'CP',24:'CP',25:'CP',28:'CP'},
+      {},
+      {}
+    ] },
   { nom:'GERIN',     prenom:'Hervé',      equipe:1,
-    jours:[{},{4:'RTT',11:'RTT'},{}] },
+    jours:[
+      {4:'RTT',11:'RTT'},
+      {},
+      {27:'RTT',30:'RTT'}
+    ] },
   { nom:'MARABEUF',  prenom:'Yannick',    equipe:1,
-    jours:[{3:'TLT',14:'TLT',17:'TLT',28:'TLT',31:'TLT'},{16:'RTT',17:'RTT',18:'CP',21:'CP',22:'RTT',23:'RTT'},{}] },
+    jours:[
+      {16:'RTT',17:'RTT',18:'CP',21:'CP',22:'RTT',23:'RTT'},
+      {},
+      {}
+    ] },
   { nom:'GUILLON',   prenom:'Quentin',    equipe:1,
     jours:[
-      {},
       {14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE',17:'ÉCOLE',18:'ÉCOLE',21:'ÉCOLE',22:'ÉCOLE',23:'ÉCOLE',24:'ÉCOLE',25:'ÉCOLE'},
-      {12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE',19:'ÉCOLE',20:'ÉCOLE',21:'ÉCOLE',22:'ÉCOLE',23:'ÉCOLE'}
+      {12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE',19:'ÉCOLE',20:'ÉCOLE',21:'ÉCOLE',22:'ÉCOLE',23:'ÉCOLE'},
+      {}
     ] },
   { nom:'ROBERT',    prenom:'Christophe', equipe:2,
-    jours:[{5:'TLT',12:'TLT',14:'RTT',19:'TLT',26:'TLT',31:'CP'},{3:'TLT',4:'CP',7:'CP',8:'TLT'},{}] },
+    jours:[
+      {4:'CP',7:'CP',3:'TLT',8:'TLT'},
+      {},
+      {}
+    ] },
   { nom:'CHARBELET', prenom:'Julien',     equipe:2,
-    jours:[{3:'CP',4:'CP',5:'CP',6:'CP',7:'CP',10:'CP',11:'CP',12:'CP',13:'CP',14:'CP',21:'TLT',27:'1/2 RTT',31:'1/2 RTT'},{4:'TLT'},{}] },
+    jours:[
+      {4:'TLT',11:'TLT',18:'TLT'},
+      {12:'RTT'},
+      {}
+    ] },
   { nom:'RODRIGO',   prenom:'Steven',     equipe:2,
-    jours:[{7:'CP'},{},{}] },
+    jours:[{},{},{}] },
   { nom:'LALIGUI',   prenom:'Yanis',      equipe:2,
     jours:[
-      {},
       {10:'ÉCOLE',11:'ÉCOLE',12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE',17:'ÉCOLE',18:'ÉCOLE'},
-      {12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE'}
+      {12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE'},
+      {}
     ] }
 ];
 
@@ -566,7 +586,7 @@ function buildTable(){
   let bh='';
   const groups=[
     {label:'🟣 Équipe 1 — Tanguy · Hervé · Yannick · Quentin', cls:'g1', members:TEAM_EQ1},
-    {label:'🔵 Équipe 2 — Christophe · Julien · Steven · Yanis',       cls:'g2', members:TEAM_EQ2}
+    {label:'🔵 Équipe 2 — Christophe · Julien · Steven · Yanis', cls:'g2', members:TEAM_EQ2}
   ];
   for(const grp of groups){
     bh+=`<tr class="group-header ${grp.cls}"><td colspan="${days.length+2}">${grp.label}</td></tr>`;
