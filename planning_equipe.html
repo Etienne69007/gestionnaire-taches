@@ -331,7 +331,7 @@ const TEAM = [
   { nom:'GERIN',     prenom:'Hervé',      equipe:1,
     jours:[{},{27:'RTT',30:'RTT'},{}] },
   { nom:'MARABEUF',  prenom:'Yannick',    equipe:1,
-    jours:[{9:'TLT'},{},{}] },
+    jours:[{9:'TLT',12:'TLT',19:'RTT',20:'RTT',23:'TLT',26:'TLT'},{},{}] },
   { nom:'GUILLON',   prenom:'Quentin',    equipe:1,
     jours:[
       {12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE',19:'ÉCOLE',20:'ÉCOLE',21:'ÉCOLE',22:'ÉCOLE',23:'ÉCOLE'},
@@ -340,7 +340,7 @@ const TEAM = [
     ] },
   { nom:'ROBERT',    prenom:'Christophe', equipe:2,
     jours:[
-      {2:'TLT',8:'TLT',9:'CP',12:'CP',13:'TLT'},
+      {2:'TLT',8:'TLT',9:'CP',12:'CP',13:'TLT',15:'RTT',16:{AM:'RTT',PM:'CP'}},
       {},
       {}
     ] },
@@ -450,28 +450,81 @@ function setMode(mode) {
   buildDayDetail(selectedDay);
 }
 
-function cellDisplay(code, isWeekend) {
-  if (isWeekend) return '';
-  if (viewMode === 'team') {
-    // Vue équipe : on montre seulement présent / TLT / absent, sans motif
-    if (isAbsent(code))  return '<span class="pill pill-absent">Absent</span>';
-    if (isRemote(code))  return '<span class="pill pill-tlt">TLT</span>';
-    if (isEcole(code))   return '<span class="pill pill-ecole">📚 École</span>';
-    return ''; // au bureau = vide
-  }
-  return pillHtml(code);
+// ── Demi-journées ──────────────────────────────────────────────────────────
+// Un code peut être :
+//   - une string simple : 'RTT', 'TLT', 'CP', 'ÉCOLE', ''
+//   - un objet demi-journée : {AM:'RTT', PM:'CP'}  (AM=matin, PM=après-midi)
+//   - une string avec suffixe : 'RTT-AM', 'CP-PM' (alias pratiques)
+
+function parseCode(raw) {
+  if (!raw) return {AM:'', PM:''};
+  if (typeof raw === 'object') return {AM: raw.AM||'', PM: raw.PM||''};
+  // Suffixes -AM / -PM
+  if (raw.endsWith('-AM')) return {AM: raw.slice(0,-3), PM:''};
+  if (raw.endsWith('-PM')) return {AM:'', PM: raw.slice(0,-3)};
+  // Code plein jour
+  return {AM: raw, PM: raw};
 }
-function pillHtml(code) {
-  if (!code) return '';
-  const map={'TLT':'tlt','RTT':'rtt','CP':'cp','1/2 TLT':'halftlt','CSS':'css','1/2 RTT':'halfrtt','ÉCOLE':'ecole'};
-  const cls=map[code]||''; const lbl=code==='1/2 TLT'?'½ TLT':code==='1/2 RTT'?'½ RTT':code==='ÉCOLE'?'📚 École':code;
-  return cls?`<span class="pill pill-${cls}">${lbl}</span>`:`<span class="pill">${code}</span>`;
+function isHalfDay(raw) {
+  if (!raw) return false;
+  if (typeof raw === 'object') return true;
+  return raw.endsWith('-AM') || raw.endsWith('-PM');
 }
 
-function isAbsent(c) { return c==='RTT'||c==='CP'||c==='CSS'||c==='1/2 RTT'; }
-function isEcole(c)  { return c==='ÉCOLE'; }
-function isRemote(c) { return c==='TLT'||c==='1/2 TLT'; }
-function isPresent(c){ return !c; }
+const CODE_MAP = {'TLT':'tlt','RTT':'rtt','CP':'cp','1/2 TLT':'halftlt','CSS':'css','1/2 RTT':'halfrtt','ÉCOLE':'ecole'};
+const CODE_LBL = {'1/2 TLT':'½ TLT','1/2 RTT':'½ RTT','ÉCOLE':'📚 École'};
+
+function onePill(code, suffix) {
+  if (!code) return '';
+  const cls = CODE_MAP[code]||'';
+  const lbl = (CODE_LBL[code]||code) + (suffix?' '+suffix:'');
+  return cls ? `<span class="pill pill-${cls}" style="font-size:0.6rem;padding:1px 5px">${lbl}</span>`
+             : `<span class="pill" style="font-size:0.6rem;padding:1px 5px">${lbl}</span>`;
+}
+
+function pillHtml(raw) {
+  if (!raw) return '';
+  if (!isHalfDay(raw)) {
+    const code = typeof raw === 'string' ? raw : '';
+    const cls = CODE_MAP[code]||'';
+    const lbl = CODE_LBL[code]||code;
+    return cls ? `<span class="pill pill-${cls}">${lbl}</span>`
+               : `<span class="pill">${lbl}</span>`;
+  }
+  const {AM, PM} = parseCode(raw);
+  if (AM === PM) return pillHtml(AM); // même code matin/PM → pill normale
+  return `<div style="display:flex;flex-direction:row;gap:2px;align-items:center;justify-content:center">${onePill(AM,'')}${onePill(PM,'')}</div>`;
+}
+
+function isAbsent(raw) {
+  const {AM, PM} = parseCode(raw);
+  const abs = c => c==='RTT'||c==='CP'||c==='CSS'||c==='1/2 RTT';
+  return abs(AM) || abs(PM);
+}
+function isFullAbsent(raw) {
+  const {AM, PM} = parseCode(raw);
+  const abs = c => c==='RTT'||c==='CP'||c==='CSS'||c==='1/2 RTT';
+  return abs(AM) && abs(PM);
+}
+function isEcole(raw)  {
+  const {AM,PM}=parseCode(raw); return AM==='ÉCOLE'||PM==='ÉCOLE';
+}
+function isRemote(raw) {
+  const {AM,PM}=parseCode(raw);
+  return (AM==='TLT'||AM==='1/2 TLT') || (PM==='TLT'||PM==='1/2 TLT');
+}
+function isPresent(raw){ return !raw; }
+
+function cellDisplay(raw) {
+  if (viewMode === 'team') {
+    if (isFullAbsent(raw)) return '<span class="pill pill-absent">Absent</span>';
+    if (isAbsent(raw))     return '<span class="pill pill-absent" style="font-size:0.6rem">½ Absent</span>';
+    if (isRemote(raw))     return '<span class="pill pill-tlt">TLT</span>';
+    if (isEcole(raw))      return '<span class="pill pill-ecole">📚 École</span>';
+    return '';
+  }
+  return pillHtml(raw);
+}
 
 function tltRate(p, mi) {
   const m=MONTHS[mi]; let w=0,t=0;
@@ -584,18 +637,19 @@ function buildTable(){
       bh+=`<tr><td class="col-name">${p.nom}<span class="eq-badge eq${p.equipe}">EQ${p.equipe}</span><span class="prenom">${p.prenom}</span></td><td class="col-tlt" style="${rs}">${rate}%</td>`;
       for(const d of days){
         const dw=m.dow(d),we=dw>=6,tod=isToday&&d===TODAY_DAY,sel=!tod&&d===selectedDay,inW=curWeek.has(d);
-        const code=p.jours[mi][d]||'';
+        const raw=p.jours[mi][d]||'';
+        const {AM,PM}=parseCode(raw);
         let dim=false;
-        if(hlDays&&!we){if(activeFilter==='tlt')dim=!isRemote(code);else if(activeFilter==='rtt')dim=code!=='RTT';else if(activeFilter==='cp')dim=code!=='CP';else if(activeFilter==='conf'){const a=alerts.get(d);dim=!a||(a.eq1==='ok'&&a.eq2==='ok');}}
+        if(hlDays&&!we){if(activeFilter==='tlt')dim=!isRemote(raw);else if(activeFilter==='rtt')dim=AM!=='RTT'&&PM!=='RTT';else if(activeFilter==='cp')dim=AM!=='CP'&&PM!=='CP';else if(activeFilter==='conf'){const a=alerts.get(d);dim=!a||(a.eq1==='ok'&&a.eq2==='ok');}}
         let cls='';
         if(we)cls+=' weekend'; if(inW&&!we&&!tod)cls+=' cur-week';
         if(tod)cls+=' today-col'; else if(sel)cls+=' selected-col';
         if(dim)cls+=' dimmed';
         const statusLabel=viewMode==='team'
-          ? (isAbsent(code)?'Absent':isRemote(code)?'Télétravail':'Au bureau')
-          : (isAbsent(code)?(code==='RTT'?'RTT':code==='CSS'?'Congé sans solde':'Congés'):isRemote(code)?'Télétravail':'Au bureau');
+          ? (isFullAbsent(raw)?'Absent':isAbsent(raw)?'½ Absent':isRemote(raw)?'Télétravail':'Au bureau')
+          : (isHalfDay(raw)?`${AM||'Bureau'} matin / ${PM||'Bureau'} après-midi`:isAbsent(raw)?raw:isRemote(raw)?'Télétravail':'Au bureau');
         const tip=we?'':`<div class="tooltip"><strong>${p.prenom} ${p.nom}</strong><br>${DAY_NAMES[dw]} ${d} ${m.label}<br>${statusLabel}</div>`;
-        bh+=`<td class="${cls}">${we?'':cellDisplay(code,false)+tip}</td>`;
+        bh+=`<td class="${cls}">${we?'':cellDisplay(raw)+tip}</td>`;
       }
       bh+='</tr>';
     }
@@ -637,10 +691,10 @@ function buildDayDetail(day){
   const renderGroup=(members,eqNum,eqAlert)=>{
     const bu=[],re=[],ab=[];
     for(const p of members){
-      const c=p.jours[mi][day]||'';
-      const dispCode = viewMode==='team' ? '' : c; // masquer motif en vue équipe
-      const item=`<div class="day-detail-item"><span>${p.prenom} ${p.nom}</span>${pillHtml(dispCode)||'<span style="font-size:0.72rem;color:var(--success)">🏢</span>'}</div>`;
-      if(isAbsent(c))ab.push(item);else if(isRemote(c))re.push(item);else bu.push(item);
+      const raw=p.jours[mi][day]||'';
+      const dispRaw = viewMode==='team' ? '' : raw;
+      const item=`<div class="day-detail-item"><span>${p.prenom} ${p.nom}</span>${pillHtml(dispRaw)||'<span style="font-size:0.72rem;color:var(--success)">🏢</span>'}</div>`;
+      if(isFullAbsent(raw))ab.push(item);else if(isAbsent(raw)||isRemote(raw))re.push(item);else bu.push(item);
     }
     const badge=eqAlert==='danger'?`<span style="margin-left:8px;font-size:0.72rem;background:var(--danger-light);color:#991b1b;padding:2px 7px;border-radius:6px;font-weight:700;">🔴 Aucun présentiel</span>`:eqAlert==='warn'?`<span style="margin-left:8px;font-size:0.72rem;background:var(--warn-light);color:var(--warn);padding:2px 7px;border-radius:6px;font-weight:700;">🟡 1 seul présentiel</span>`:'';
     let h=`<div style="margin-bottom:16px"><div style="font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px">Équipe ${eqNum} ${badge}</div><div class="day-sections">`;
