@@ -492,6 +492,7 @@ function setMode(mode) {
     activeFilter=null;
     ['tlt','rtt','cp','conf'].forEach(k=>{ document.getElementById('f-'+k).className='filter-btn'; });
   }
+  buildStats();
   buildTable();
   buildDayDetail(selectedDay);
 }
@@ -628,16 +629,34 @@ function buildAlerts(){
 }
 
 function buildStats(){
-  const mi=currentMonth, m=MONTHS[mi]; let tlt=0,rtt=0,cp=0;
-  for(const p of TEAM) for(const[d,c] of Object.entries(p.jours[mi])){
-    if(m.dow(Number(d))<6){if(isRemote(c))tlt++;if(c==='RTT')rtt++;if(c==='CP')cp++;}
+  const mi=currentMonth, m=MONTHS[mi];
+  // Comptage en jours (une demi-journée = 0,5), week-ends et jours fériés exclus
+  let tlt=0,rtt=0,cp=0,css=0,abs=0;
+  const isAbsCode=x=>x==='RTT'||x==='CP'||x==='CSS'||x==='1/2 RTT';
+  for(const p of TEAM) for(const[d,raw] of Object.entries(p.jours[mi])){
+    const day=Number(d);
+    if(m.dow(day)>=6||isFerie(mi,day)) continue;
+    const {AM,PM}=parseCode(raw);
+    for(const x of [AM,PM]){
+      if(x==='TLT'||x==='1/2 TLT') tlt+=0.5;
+      if(x==='RTT'||x==='1/2 RTT') rtt+=0.5;
+      if(x==='CP') cp+=0.5;
+      if(x==='CSS') css+=0.5;
+      if(isAbsCode(x)) abs+=0.5;
+    }
   }
+  const f=n=>Number.isInteger(n)?n:n.toFixed(1).replace('.',',');
   const alerts=getTeamAlerts(mi); let danger=0,warn=0;
   for(const[,a] of alerts){if(a.eq1==='danger'||a.eq2==='danger')danger++;else if(a.eq1==='warn'||a.eq2==='warn')warn++;}
+  // Vue équipe (RGPD) : pas de détail par motif -> un seul compteur « Absences »
+  const absCards = viewMode==='team'
+    ? `<div class="stat-card"><div class="s-label">Absences (jours)</div><div class="s-val" style="color:var(--muted)">${f(abs)}</div></div>`
+    : `<div class="stat-card"><div class="s-label">RTT</div><div class="s-val" style="color:var(--rtt-color)">${f(rtt)}</div></div>
+       <div class="stat-card"><div class="s-label">CP</div><div class="s-val" style="color:var(--cp-color)">${f(cp)}</div></div>
+       ${css?`<div class="stat-card"><div class="s-label">CSS</div><div class="s-val" style="color:var(--css-color)">${f(css)}</div></div>`:''}`;
   document.getElementById('stats-bar').innerHTML=`
-    <div class="stat-card"><div class="s-label">TLT</div><div class="s-val" style="color:var(--tlt-color)">${tlt}</div></div>
-    <div class="stat-card"><div class="s-label">RTT</div><div class="s-val" style="color:var(--rtt-color)">${rtt}</div></div>
-    <div class="stat-card"><div class="s-label">CP</div><div class="s-val" style="color:var(--cp-color)">${cp}</div></div>
+    <div class="stat-card"><div class="s-label">TLT (jours)</div><div class="s-val" style="color:var(--tlt-color)">${f(tlt)}</div></div>
+    ${absCards}
     <div class="stat-card" style="border-color:${danger>0?'#fca5a5':'#6ee7b7'}"><div class="s-label" style="color:${danger>0?'#991b1b':'var(--success)'}">🔴 Sans présence</div><div class="s-val" style="color:${danger>0?'var(--danger)':'var(--success)'}">${danger}</div></div>
     <div class="stat-card" style="border-color:${warn>0?'#fcd34d':'#6ee7b7'}"><div class="s-label" style="color:${warn>0?'var(--warn)':'var(--success)'}">🟡 1 présent</div><div class="s-val" style="color:${warn>0?'var(--warn)':'var(--success)'}">${warn}</div></div>`;
 }
