@@ -16,6 +16,7 @@
     --halftlt-bg: #ede9fe; --halftlt-color: #5b21b6;
     --halfrtt-bg: #fef9c3; --halfrtt-color: #713f12;
     --ecole-bg: #dcfce7; --ecole-color: #166534;
+    --ferie-bg: #fef08a; --ferie-color: #713f12;
     --css-bg: #fce7f3; --css-color: #9d174d;
     --week-bg: #f5f8ff;
     --danger: #dc2626; --danger-light: #fee2e2;
@@ -40,6 +41,9 @@
   .pill-halftlt { background: var(--halftlt-bg); color: var(--halftlt-color); }
   .pill-halfrtt { background: var(--halfrtt-bg); color: var(--halfrtt-color); }
   .pill-ecole   { background: var(--ecole-bg);   color: var(--ecole-color); }
+  .pill-ferie   { background: var(--ferie-bg);   color: var(--ferie-color); font-size:0.62rem; }
+  th.ferie { background: #fef9c3 !important; color: #713f12 !important; }
+  td.ferie { background: #fef9c3 !important; }
   .pill-css     { background: var(--css-bg);     color: var(--css-color); }
 
   /* ── Mode switch ── */
@@ -329,7 +333,7 @@ const TEAM = [
   { nom:'BARBAUT',   prenom:'Tanguy',     equipe:1,
     jours:[{},{},{}] },
   { nom:'GERIN',     prenom:'Hervé',      equipe:1,
-    jours:[{},{27:'RTT',30:'RTT',12:'RTT',13:'RTT'},{}] },
+    jours:[{},{27:'RTT',30:'RTT',12:'RTT',13:'RTT'},{21:'RTT',22:'RTT',23:'RTT',24:'RTT',28:'RTT',29:'RTT',30:'RTT',31:'RTT'}] },
   { nom:'MARABEUF',  prenom:'Yannick',    equipe:1,
     jours:[{9:'TLT',12:'TLT',19:'RTT',20:'RTT',23:'TLT',26:'TLT'},{9:'RTT',10:{AM:'RTT',PM:'CP'},11:'CP',12:'CP',13:'CP'},{}] },
   { nom:'GUILLON',   prenom:'Quentin',    equipe:1,
@@ -342,7 +346,7 @@ const TEAM = [
     jours:[
       {2:'TLT',6:'CP',8:'TLT',9:'CP',12:'CP',13:'TLT',15:'RTT',16:{AM:'RTT',PM:'CP'}},
       {},
-      {}
+      {24:'RTT',28:'RTT',29:'RTT'}
     ] },
   { nom:'CHARBELET', prenom:'Julien',     equipe:2,
     jours:[
@@ -351,7 +355,7 @@ const TEAM = [
       {}
     ] },
   { nom:'RODRIGO',   prenom:'Steven',     equipe:2,
-    jours:[{5:'RTT'},{},{}] },
+    jours:[{5:'RTT'},{},{30:'RTT',31:'RTT'}] },
   { nom:'LALIGUI',   prenom:'Yanis',      equipe:2,
     jours:[
       {12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE'},
@@ -362,6 +366,15 @@ const TEAM = [
 
 const TEAM_EQ1 = TEAM.filter(p=>p.equipe===1);
 const TEAM_EQ2 = TEAM.filter(p=>p.equipe===2);
+
+// Jours fériés par mois (index 0=Oct, 1=Nov, 2=Dec)
+const FERIES = [
+  {},                          // Octobre : aucun
+  {11: 'Armistice'},           // Novembre : 11/11
+  {25: 'Noël'}                 // Décembre : 25/12
+];
+function isFerie(mi, d) { return !!FERIES[mi]?.[d]; }
+function ferieLabel(mi, d) { return FERIES[mi]?.[d] || ''; }
 const TLT_MAX_PCT = 40;
 const DAY_NAMES = ['','Lu','Ma','Me','Je','Ve','Sa','Di'];
 
@@ -611,14 +624,16 @@ function buildTable(){
   // Head
   let hh='<tr><th class="col-name">Collaborateur</th><th class="col-tlt">TLT%</th>';
   for(const d of days){
-    const dw=m.dow(d),we=dw>=6,tod=isToday&&d===TODAY_DAY,sel=!tod&&d===selectedDay;
+    const dw=m.dow(d),we=dw>=6,fer=isFerie(mi,d),nw=we||fer,tod=isToday&&d===TODAY_DAY,sel=!tod&&d===selectedDay;
     const lvl=dayLevel(alerts,d), inW=curWeek.has(d);
     let cls='col-day';
-    if(we)cls+=' weekend'; if(inW&&!we&&!tod)cls+=' cur-week';
-    if(tod)cls+=' today-col'; else if(sel)cls+=' selected-col';
-    if(hlDays&&!hlDays.has(d)&&!we)cls+=' dimmed';
-    const dot=(!we&&!tod&&lvl!=='ok')?`<span class="alert-dot ${lvl}"></span>`:'';
-    hh+=`<th class="${cls}" onclick="selectDay(${d})">${DAY_NAMES[dw]}<br><strong>${d}</strong>${dot}</th>`;
+    if(we)cls+=' weekend'; if(fer&&!we)cls+=' ferie';
+    if(inW&&!nw&&!tod)cls+=' cur-week';
+    if(tod)cls+=' today-col'; else if(sel&&!nw)cls+=' selected-col';
+    if(hlDays&&!hlDays.has(d)&&!nw)cls+=' dimmed';
+    const dot=(!nw&&!tod&&lvl!=='ok')?`<span class="alert-dot ${lvl}"></span>`:'';
+    const ferTip=fer?`<br><span style="font-size:0.55rem;color:#713f12">🎉 ${ferieLabel(mi,d)}</span>`:'';
+    hh+=`<th class="${cls}" onclick="${nw?'':'selectDay('+d+')'}">${DAY_NAMES[dw]}<br><strong>${d}</strong>${ferTip}${dot}</th>`;
   }
   hh+='</tr>';
   document.getElementById('table-head').innerHTML=hh;
@@ -636,20 +651,22 @@ function buildTable(){
       const rs=rate>TLT_MAX_PCT?'color:var(--danger);font-weight:700':rate>0?'color:var(--tlt-color)':'color:var(--muted)';
       bh+=`<tr><td class="col-name">${p.nom}<span class="eq-badge eq${p.equipe}">EQ${p.equipe}</span><span class="prenom">${p.prenom}</span></td><td class="col-tlt" style="${rs}">${rate}%</td>`;
       for(const d of days){
-        const dw=m.dow(d),we=dw>=6,tod=isToday&&d===TODAY_DAY,sel=!tod&&d===selectedDay,inW=curWeek.has(d);
+        const dw=m.dow(d),we=dw>=6,fer=isFerie(mi,d),nw=we||fer,tod=isToday&&d===TODAY_DAY,sel=!tod&&d===selectedDay,inW=curWeek.has(d);
         const raw=p.jours[mi][d]||'';
         const {AM,PM}=parseCode(raw);
         let dim=false;
-        if(hlDays&&!we){if(activeFilter==='tlt')dim=!isRemote(raw);else if(activeFilter==='rtt')dim=AM!=='RTT'&&PM!=='RTT';else if(activeFilter==='cp')dim=AM!=='CP'&&PM!=='CP';else if(activeFilter==='conf'){const a=alerts.get(d);dim=!a||(a.eq1==='ok'&&a.eq2==='ok');}}
+        if(hlDays&&!nw){if(activeFilter==='tlt')dim=!isRemote(raw);else if(activeFilter==='rtt')dim=AM!=='RTT'&&PM!=='RTT';else if(activeFilter==='cp')dim=AM!=='CP'&&PM!=='CP';else if(activeFilter==='conf'){const a=alerts.get(d);dim=!a||(a.eq1==='ok'&&a.eq2==='ok');}}
         let cls='';
-        if(we)cls+=' weekend'; if(inW&&!we&&!tod)cls+=' cur-week';
-        if(tod)cls+=' today-col'; else if(sel)cls+=' selected-col';
+        if(we)cls+=' weekend'; if(fer&&!we)cls+=' ferie';
+        if(inW&&!nw&&!tod)cls+=' cur-week';
+        if(tod)cls+=' today-col'; else if(sel&&!nw)cls+=' selected-col';
         if(dim)cls+=' dimmed';
-        const statusLabel=viewMode==='team'
+        const statusLabel=nw?(fer?`🎉 ${ferieLabel(mi,d)}`:'Week-end')
+          :viewMode==='team'
           ? (isFullAbsent(raw)?'Absent':isAbsent(raw)?'½ Absent':isRemote(raw)?'Télétravail':'Au bureau')
           : (isHalfDay(raw)?`${AM||'Bureau'} matin / ${PM||'Bureau'} après-midi`:isAbsent(raw)?raw:isRemote(raw)?'Télétravail':'Au bureau');
-        const tip=we?'':`<div class="tooltip"><strong>${p.prenom} ${p.nom}</strong><br>${DAY_NAMES[dw]} ${d} ${m.label}<br>${statusLabel}</div>`;
-        bh+=`<td class="${cls}">${we?'':cellDisplay(raw)+tip}</td>`;
+        const tip=`<div class="tooltip"><strong>${p.prenom} ${p.nom}</strong><br>${DAY_NAMES[dw]} ${d} ${m.label}<br>${statusLabel}</div>`;
+        bh+=`<td class="${cls}">${nw?'':cellDisplay(raw)+tip}</td>`;
       }
       bh+='</tr>';
     }
@@ -657,8 +674,8 @@ function buildTable(){
     const eqNum=grp.members[0].equipe;
     bh+=`<tr class="eq-summary-row eq${eqNum}"><td class="col-name">Présents EQ${eqNum}</td><td class="col-tlt"></td>`;
     for(const d of days){
-      const dw=m.dow(d),we=dw>=6;
-      if(we){bh+='<td class="weekend"></td>';continue;}
+      const dw=m.dow(d),we=dw>=6,fer=isFerie(mi,d);
+      if(we||fer){bh+=`<td class="${we?'weekend':'ferie'}"></td>`;continue;}
       const present=grp.members.filter(p=>isPresent(p.jours[mi][d]||'')).length;
       const a=alerts.get(d), eqLvl=eqNum===1?a?.eq1:a?.eq2;
       const tod=isToday&&d===TODAY_DAY;
@@ -671,8 +688,8 @@ function buildTable(){
   // Récap global
   bh+='<tr class="summary-row"><td class="col-name summary-row">Bureau / TLT / Abs</td><td class="col-tlt"></td>';
   for(const d of days){
-    const dw=m.dow(d),we=dw>=6;
-    if(we){bh+='<td class="weekend"></td>';continue;}
+    const dw=m.dow(d),we=dw>=6,fer=isFerie(mi,d);
+    if(we||fer){bh+=`<td class="${we?'weekend':'ferie'}"></td>`;continue;}
     let bu=0,re=0,ab=0;
     for(const p of TEAM){const c=p.jours[mi][d]||'';if(isAbsent(c))ab++;else if(isRemote(c))re++;else bu++;}
     const tod=isToday&&d===TODAY_DAY;
