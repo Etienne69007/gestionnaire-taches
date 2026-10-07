@@ -140,6 +140,11 @@
   tr.group-header.g1 td { color: var(--eq1); border-top-color: var(--eq1-border); }
   tr.group-header.g2 td { color: var(--eq2); border-top-color: var(--eq2-border); }
   tr.eq-summary-row td { padding: 3px; background: #fafbff; border-top: 1px dashed var(--border); }
+  tr.horaire-row td { padding: 3px 2px; background: #fcfcfe; text-align: center; font-size: 0.62rem; font-weight: 700; border-top: 1px dashed var(--border); }
+  tr.horaire-row td.col-name { text-align: left; padding-left: 16px; font-size: 0.6rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); background: #fcfcfe; }
+  .hor-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; }
+  .hor-8 { background: #ffedd5; color: #9a3412; }
+  .hor-9 { background: #e0e7ff; color: #3730a3; }
   tr.eq-summary-row td.col-name { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: #fafbff; }
   tr.eq-summary-row.eq1 td.col-name { color: var(--eq1); }
   tr.eq-summary-row.eq2 td.col-name { color: var(--eq2); }
@@ -375,6 +380,34 @@ const FERIES = [
 ];
 function isFerie(mi, d) { return !!FERIES[mi]?.[d]; }
 function ferieLabel(mi, d) { return FERIES[mi]?.[d] || ''; }
+
+// Horaires d'équipe : les 2 équipes alternent chaque semaine (8h / 9h).
+// Semaine de référence : lundi 05/10/2026 = Équipe 1 à 8h, Équipe 2 à 9h.
+// Pour changer : modifier la date ou inverser HORAIRE_REF_EQ1.
+const HORAIRE_REF_LUNDI = new Date(2026, 9, 5);
+const HORAIRE_REF_EQ1 = 8;
+function mondayOf(y, mo, d) {
+  const dt = new Date(y, mo-1, d);
+  const off = (dt.getDay()+6)%7;
+  return new Date(y, mo-1, d-off);
+}
+function startHour(eqNum, y, mo, d) {
+  const weeks = Math.round((mondayOf(y,mo,d) - HORAIRE_REF_LUNDI) / (7*86400000));
+  const even = ((weeks%2)+2)%2 === 0;
+  const eq1 = even ? HORAIRE_REF_EQ1 : (HORAIRE_REF_EQ1===8 ? 9 : 8);
+  return eqNum===1 ? eq1 : (eq1===8 ? 9 : 8);
+}
+function horaireRow(eqNum, days, m) {
+  let segs=[], cur=null;
+  for (const d of days) {
+    const key = mondayOf(m.year, m.month, d).getTime();
+    if (cur && cur.key===key) cur.n++;
+    else { cur={key, n:1, h:startHour(eqNum, m.year, m.month, d)}; segs.push(cur); }
+  }
+  let r = `<tr class="horaire-row"><td class="col-name">Début de journée</td><td class="col-tlt"></td>`;
+  for (const s of segs) r += `<td colspan="${s.n}"><span class="hor-badge hor-${s.h}">${s.h}h</span></td>`;
+  return r + '</tr>';
+}
 const TLT_MAX_PCT = 40;
 const DAY_NAMES = ['','Lu','Ma','Me','Je','Ve','Sa','Di'];
 
@@ -646,6 +679,7 @@ function buildTable(){
   ];
   for(const grp of groups){
     bh+=`<tr class="group-header ${grp.cls}"><td colspan="${days.length+2}">${grp.label}</td></tr>`;
+    bh+=horaireRow(grp.members[0].equipe, days, m);
     for(const p of grp.members){
       const rate=tltRate(p,mi);
       const rs=rate>TLT_MAX_PCT?'color:var(--danger);font-weight:700':rate>0?'color:var(--tlt-color)':'color:var(--muted)';
@@ -714,7 +748,7 @@ function buildDayDetail(day){
       if(isFullAbsent(raw))ab.push(item);else if(isAbsent(raw)||isRemote(raw))re.push(item);else bu.push(item);
     }
     const badge=eqAlert==='danger'?`<span style="margin-left:8px;font-size:0.72rem;background:var(--danger-light);color:#991b1b;padding:2px 7px;border-radius:6px;font-weight:700;">🔴 Aucun présentiel</span>`:eqAlert==='warn'?`<span style="margin-left:8px;font-size:0.72rem;background:var(--warn-light);color:var(--warn);padding:2px 7px;border-radius:6px;font-weight:700;">🟡 1 seul présentiel</span>`:'';
-    let h=`<div style="margin-bottom:16px"><div style="font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px">Équipe ${eqNum} ${badge}</div><div class="day-sections">`;
+    let h=`<div style="margin-bottom:16px"><div style="font-size:0.74rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:8px">Équipe ${eqNum} · début ${startHour(eqNum, MONTHS[mi].year, MONTHS[mi].month, day)}h ${badge}</div><div class="day-sections">`;
     if(bu.length)h+=`<div><div class="day-section-title">🏢 Bureau (${bu.length})</div><div class="day-detail-grid">${bu.join('')}</div></div>`;
     if(re.length)h+=`<div><div class="day-section-title">💻 TLT (${re.length})</div><div class="day-detail-grid">${re.join('')}</div></div>`;
     if(ab.length)h+=`<div><div class="day-section-title">✕ Absents (${ab.length})</div><div class="day-detail-grid">${ab.join('')}</div></div>`;
