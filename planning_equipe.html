@@ -398,14 +398,16 @@ function startHour(eqNum, y, mo, d) {
   return eqNum===1 ? eq1 : (eq1===8 ? 9 : 8);
 }
 function horaireRow(eqNum, days, m) {
-  let segs=[], cur=null;
-  for (const d of days) {
-    const key = mondayOf(m.year, m.month, d).getTime();
-    if (cur && cur.key===key) cur.n++;
-    else { cur={key, n:1, h:startHour(eqNum, m.year, m.month, d)}; segs.push(cur); }
-  }
+  // Badge affiché sur chaque lundi (et sur le 1er jour affiché si c'est un jour de semaine en milieu de semaine)
+  const mi = MONTHS.indexOf(m);
   let r = `<tr class="horaire-row"><td class="col-name">Début de journée</td><td class="col-tlt"></td>`;
-  for (const s of segs) r += `<td colspan="${s.n}"><span class="hor-badge hor-${s.h}">${s.h}h</span></td>`;
+  days.forEach((d, idx) => {
+    const dw = m.dow(d);
+    const cls = dw>=6 ? 'weekend' : (isFerie(mi,d) ? 'ferie' : '');
+    const show = dw===1 || (idx===0 && dw<=5);
+    const h = startHour(eqNum, m.year, m.month, d);
+    r += `<td class="${cls}">${show ? `<span class="hor-badge hor-${h}">${h}h</span>` : ''}</td>`;
+  });
   return r + '</tr>';
 }
 const TLT_MAX_PCT = 40;
