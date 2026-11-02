@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planning Équipe — Juil–Sept 2026</title>
+<title>Planning équipe — Nov 2026–Jan 2027</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -232,7 +232,7 @@
 
 <header>
   <div>
-    <h1>Planning équipe — <span>Oct–Déc 2026</span></h1>
+    <h1>Planning équipe — <span>Nov 2026–Jan 2027</span></h1>
     <div class="subtitle">LIP IT · 8 collaborateurs · 2 équipes</div>
   </div>
   <div class="legend" id="legend-box">
@@ -290,9 +290,9 @@
 <div class="alerts-panel" id="alerts-panel"></div>
 
 <div class="toolbar">
-  <button class="tab" onclick="switchMonth(0)">Octobre 2026</button>
-  <button class="tab" onclick="switchMonth(1)">Novembre 2026</button>
-  <button class="tab" onclick="switchMonth(2)">Décembre 2026</button>
+  <button class="tab" onclick="switchMonth(0)">Novembre 2026</button>
+  <button class="tab" onclick="switchMonth(1)">Décembre 2026</button>
+  <button class="tab" onclick="switchMonth(2)">Janvier 2027</button>
   <div class="vsep" style="height:28px;margin:0 4px;"></div>
   <div class="view-toggle">
     <button class="view-btn active" id="view-month" onclick="switchView('month')">Mois</button>
@@ -318,9 +318,9 @@
 
 <script>
 const MONTHS = [
-  { label:'Octobre 2026',  days:31, year:2026, month:10, dow: d=>((d-1+3)%7)+1 },
   { label:'Novembre 2026', days:30, year:2026, month:11, dow: d=>((d-1+6)%7)+1 },
-  { label:'Décembre 2026', days:31, year:2026, month:12, dow: d=>((d-1+1)%7)+1 }
+  { label:'Décembre 2026', days:31, year:2026, month:12, dow: d=>((d-1+1)%7)+1 },
+  { label:'Janvier 2027',  days:31, year:2027, month:1,  dow: d=>((d-1+4)%7)+1 }
 ];
 
 // Normalisation des codes Nibelis → codes internes
@@ -335,48 +335,64 @@ function norm(v) {
 }
 
 const TEAM = [
-  { nom:'BARBAUT',   prenom:'Tanguy',     equipe:1,
-    jours:[{9:'TLT',16:'TLT'},{},{}] },
-  { nom:'GERIN',     prenom:'Hervé',      equipe:1,
-    jours:[{},{27:'RTT',30:'RTT',12:'RTT',13:'RTT'},{21:'RTT',22:'RTT',23:'RTT',24:'RTT',28:'RTT',29:'RTT',30:'RTT',31:'RTT'}] },
-  { nom:'MARABEUF',  prenom:'Yannick',    equipe:1,
-    jours:[{9:'TLT',12:'TLT',19:'RTT',20:'RTT',23:'TLT',26:'TLT',28:'CP'},{6:'TLT',9:'RTT',10:{AM:'RTT',PM:'CP'},11:'CP',12:'CP',13:'CP'},{}] },
-  { nom:'GUILLON',   prenom:'Quentin',    equipe:1,
+  { nom:'BARBAUT', prenom:'Tanguy', equipe:1,
     jours:[
-      {12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE',19:'ÉCOLE',20:'ÉCOLE',21:'ÉCOLE',22:'ÉCOLE',23:'ÉCOLE'},
-      {9:'ÉCOLE',10:'ÉCOLE',11:'ÉCOLE',12:'ÉCOLE',13:'ÉCOLE',16:'ÉCOLE',17:'ÉCOLE',18:'ÉCOLE',19:'ÉCOLE',20:'ÉCOLE'},
-      {7:'ÉCOLE',8:'ÉCOLE',9:'ÉCOLE',10:'ÉCOLE',11:'ÉCOLE'}
-    ] },
-  { nom:'ROBERT',    prenom:'Christophe', equipe:2,
-    jours:[
-      {2:'TLT',6:'CP',8:'TLT',9:'CP',12:'CP',13:'TLT',14:'TLT',15:'RTT',16:{AM:'RTT',PM:'CP'},22:'TLT',27:'TLT'},
-      {2:'TLT'},
-      {24:'RTT',28:'RTT',29:'RTT'}
-    ] },
-  { nom:'CHARBELET', prenom:'Julien',     equipe:2,
-    jours:[
-      {1:'TLT',7:'TLT',12:'RTT',16:'TLT',19:'TLT',26:'RTT',27:'RTT',30:'TLT'},
-      {2:'TLT',19:'RTT',20:'RTT'},
+      {6:'TLT'},
+      {},
       {}
     ] },
-  { nom:'RODRIGO',   prenom:'Steven',     equipe:2,
-    jours:[{5:'RTT',22:'CP',23:'CP'},{16:'RTT',17:'RTT',18:'RTT',19:'RTT',20:{AM:'RTT',PM:'CP'}},{30:'RTT',31:'RTT'}] },
-  { nom:'LALIGUI',   prenom:'Yanis',      equipe:2,
+  { nom:'GERIN', prenom:'Hervé', equipe:1,
     jours:[
-      {12:'ÉCOLE',13:'ÉCOLE',14:'ÉCOLE',15:'ÉCOLE',16:'ÉCOLE'},
+      {5:'TLT',12:'RTT',13:'RTT',27:'RTT',30:'RTT'},
+      {21:'RTT',22:'RTT',23:'RTT',24:'RTT',28:'RTT',29:'RTT',30:'RTT',31:'RTT'},
+      {}
+    ] },
+  { nom:'MARABEUF', prenom:'Yannick', equipe:1,
+    jours:[
+      {6:'TLT',9:'RTT',10:{AM:'RTT',PM:'CP'},11:'CP',12:'CP',13:'CP'},
+      {},
+      {}
+    ] },
+  { nom:'GUILLON', prenom:'Quentin', equipe:1,
+    jours:[
+      {9:'ÉCOLE',10:'ÉCOLE',11:'ÉCOLE',12:'ÉCOLE',13:'ÉCOLE',16:'ÉCOLE',17:'ÉCOLE',18:'ÉCOLE',19:'ÉCOLE',20:'ÉCOLE'},
+      {7:'ÉCOLE',8:'ÉCOLE',9:'ÉCOLE',10:'ÉCOLE',11:'ÉCOLE'},
+      {25:'ÉCOLE',26:'ÉCOLE',27:'ÉCOLE',28:'ÉCOLE',29:'ÉCOLE'}
+    ] },
+  { nom:'ROBERT', prenom:'Christophe', equipe:2,
+    jours:[
+      {2:'TLT',9:'CP',10:'CP',12:'TLT'},
+      {24:'RTT',28:'RTT',29:'RTT'},
+      {}
+    ] },
+  { nom:'CHARBELET', prenom:'Julien', equipe:2,
+    jours:[
+      {2:'TLT',19:'RTT',20:'RTT'},
+      {},
+      {}
+    ] },
+  { nom:'RODRIGO', prenom:'Steven', equipe:2,
+    jours:[
+      {5:'CP',16:'RTT',17:'RTT',18:'RTT',19:'RTT',20:{AM:'RTT',PM:'CP'}},
+      {30:'RTT',31:'RTT'},
+      {}
+    ] },
+  { nom:'LALIGUI', prenom:'Yanis', equipe:2,
+    jours:[
       {9:'ÉCOLE',10:'ÉCOLE',11:'ÉCOLE',12:'ÉCOLE',13:'ÉCOLE'},
-      {7:'ÉCOLE',8:'ÉCOLE',9:'ÉCOLE',10:'ÉCOLE',11:'ÉCOLE'}
+      {7:'ÉCOLE',8:'ÉCOLE',9:'ÉCOLE',10:'ÉCOLE',11:'ÉCOLE'},
+      {}
     ] }
 ];
 
 const TEAM_EQ1 = TEAM.filter(p=>p.equipe===1);
 const TEAM_EQ2 = TEAM.filter(p=>p.equipe===2);
 
-// Jours fériés par mois (index 0=Oct, 1=Nov, 2=Dec)
+// Jours fériés par mois (index 0=Nov, 1=Dec, 2=Jan)
 const FERIES = [
-  {},                          // Octobre : aucun
   {11: 'Armistice'},           // Novembre : 11/11
-  {25: 'Noël'}                 // Décembre : 25/12
+  {25: 'Noël'},                // Décembre : 25/12
+  {1: "Jour de l'An"}           // Janvier : 01/01
 ];
 function isFerie(mi, d) { return !!FERIES[mi]?.[d]; }
 function ferieLabel(mi, d) { return FERIES[mi]?.[d] || ''; }
